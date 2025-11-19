@@ -14,6 +14,13 @@ import use_case.calendar.ViewCalendarInputBoundary;
 import use_case.calendar.ViewCalendarInteractor;
 import use_case.calendar.ViewCalendarOutputBoundary;
 import view.CalendarPanel;
+import interface_adapter.sync_task.SyncTaskToCalendarController;
+import interface_adapter.sync_task.SyncTaskToCalendarPresenter;
+import use_case.sync_task.SyncTaskToCalendarInputBoundary;
+import use_case.sync_task.SyncTaskToCalendarInteractor;
+import use_case.sync_task.SyncTaskToCalendarOutputBoundary;
+import view.TasksPanel;
+
 
 public class Main {
     public static void main(String[] args) {
@@ -33,6 +40,16 @@ public class Main {
 
             CalendarPanel.sharedViewModel = calendarViewModel;
             CalendarPanel.sharedCalendarController = calendarController;
+
+            SyncTaskToCalendarOutputBoundary syncPresenter = new SyncTaskToCalendarPresenter();
+            SyncTaskToCalendarInputBoundary syncInteractor =
+                    new SyncTaskToCalendarInteractor(calendarController, syncPresenter);
+            SyncTaskToCalendarController syncController =
+                    new SyncTaskToCalendarController(syncInteractor);
+
+            TasksPanel.syncController = syncController;
+
+
 
             AppBuilder appBuilder = new AppBuilder();
             JFrame application = appBuilder
