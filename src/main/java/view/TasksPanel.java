@@ -17,6 +17,8 @@ public class TasksPanel extends JPanel {
     private JButton addTaskBtn;
     private List<Task> allTasks = new ArrayList<>();
 
+    public static interface_adapter.sync_task.SyncTaskToCalendarController syncController;
+
     public TasksPanel() {
 
         // Colours
@@ -245,7 +247,12 @@ public class TasksPanel extends JPanel {
                 }
 
                 allTasks.add(newTask);
-                refreshTable();
+
+                if (syncController != null) {
+                    syncController.sync(newTask);
+                }
+
+                refreshTable();
                 popup.dispose();
 
             } catch (Exception ex) {
