@@ -12,6 +12,8 @@ public class TasksPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JButton addTaskBtn;
 
+    public static interface_adapter.sync_task.SyncTaskToCalendarController syncController;
+
     public TasksPanel() {
 
         // Colours
@@ -195,6 +197,11 @@ public class TasksPanel extends JPanel {
                 if (completedCheck.isSelected()) {
                     newTask.markCompleted();
                 }
+
+                if (syncController != null) {
+                    syncController.sync(newTask);
+                }
+
 
                 // Add row to table
                 tableModel.addRow(new Object[]{
