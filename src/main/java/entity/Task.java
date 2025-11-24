@@ -8,8 +8,9 @@ public class Task {
     private String title;
     private String description;
     private LocalDate date;
-    private String course;      // now a Course object
+    private String course;
     private boolean completed;
+    private String type;
 
     public Task(int id,
                 String title,
@@ -23,9 +24,9 @@ public class Task {
         this.date = date;
         this.course = course;
         this.completed = false;
+        this.type = "Task";
     }
 
-    // --- Getters ---
     public int getId() {
         return id;
     }
@@ -50,7 +51,6 @@ public class Task {
         return completed;
     }
 
-    // --- Setters ---
     public void setTitle(String title) {
         this.title = title;
     }
@@ -73,5 +73,9 @@ public class Task {
 
     public void markIncomplete() {
         this.completed = false;
+    }
+
+    public String getType() {
+        return type;
     }
 }

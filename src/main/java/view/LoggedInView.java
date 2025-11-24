@@ -1,5 +1,6 @@
 package view;
 
+import interface_adapter.Dashboard.DashboardViewModel;
 import interface_adapter.logged_in.ChangePasswordController;
 import interface_adapter.logged_in.LoggedInState;
 import interface_adapter.logged_in.LoggedInViewModel;
@@ -20,6 +21,7 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
 
     public final String viewName = "logged in";
     private final LoggedInViewModel loggedInViewModel;
+    private final DashboardViewModel dashboardViewModel;
 
     private DashboardView dashboard = null;
     private JFrame applicationFrame = null;
@@ -27,17 +29,19 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
     private ChangePasswordController changePasswordController = null;
     private LogoutController logoutController = null;
 
-    // Modified Constructor (No longer takes JFrame)
-    public LoggedInView(LoggedInViewModel loggedInViewModel) {
+    /**
+     * Updated Constructor to accept both required ViewModels.
+     * @param loggedInViewModel The ViewModel for authentication state.
+     * @param dashboardViewModel The ViewModel containing data for the HomePanel.
+     */
+    public LoggedInView(LoggedInViewModel loggedInViewModel, DashboardViewModel dashboardViewModel) {
         this.loggedInViewModel = loggedInViewModel;
+        this.dashboardViewModel = dashboardViewModel;
         this.loggedInViewModel.addPropertyChangeListener(this);
-
-        // Set a temporary placeholder until setApplicationFrame is called
         this.setLayout(new BorderLayout());
         this.add(new JLabel("Loading Dashboard...", SwingConstants.CENTER), BorderLayout.CENTER);
     }
 
-    // NEW Setter Method - Called by AppBuilder.build()
     /**
      * Injects the main application frame and finalizes the view setup
      * by creating and displaying the DashboardView.
@@ -49,16 +53,13 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
 
         this.applicationFrame = applicationFrame;
 
-        // CRITICAL STEP: Now we have the JFrame, we can instantiate the DashboardView
-        this.dashboard = new DashboardView(this.applicationFrame);
+        this.dashboard = new DashboardView(this.applicationFrame, this.dashboardViewModel);
 
-        // Load the dashboard into this panel
         this.removeAll();
         this.add(dashboard, BorderLayout.CENTER);
         this.revalidate();
         this.repaint();
 
-        // Pass any controllers that were set before the dashboard was created
         if (changePasswordController != null) {
             dashboard.setChangePasswordController(changePasswordController);
         }
@@ -66,16 +67,10 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
             dashboard.setLogoutController(logoutController);
         }
 
-        // Send the current username to the dashboard to update the welcome message
         propertyChange(new PropertyChangeEvent(this, "state", null, loggedInViewModel.getState()));
 
-        // =================================================================
-        // ✅ NEW: Maximizing the Window After Login is Complete
-        // =================================================================
         if (this.applicationFrame != null) {
-            // Set the main application JFrame to the maximized (full screen) state
             this.applicationFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-            // Ensure the frame is visible (if it wasn't already) and update layout
             this.applicationFrame.setVisible(true);
             this.applicationFrame.revalidate();
         }
@@ -85,7 +80,6 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
      * React to a button click. All action logic is now inside DashboardView.
      */
     public void actionPerformed(ActionEvent evt) {
-        // This is now mostly a placeholder since the buttons are in DashboardView
         System.out.println("Click from LoggedInView container: " + evt.getActionCommand());
     }
 
@@ -94,20 +88,16 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
         if (evt.getPropertyName().equals("state")) {
             final LoggedInState state = (LoggedInState) evt.getNewValue();
 
-            // Pass the username to the method on the dashboard
             if (dashboard != null) {
                 dashboard.updateUsername(state.getUsername());
             }
         }
-        // All password change/error popups should now be initiated by components inside DashboardView
-        // and its associated controllers/presenters.
     }
 
     public String getViewName() {
         return viewName;
     }
 
-    // Modified controller setters to handle the delayed Dashboard initialization
     public void setChangePasswordController(ChangePasswordController changePasswordController) {
         this.changePasswordController = changePasswordController;
         if (dashboard != null) {

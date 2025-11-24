@@ -1,5 +1,6 @@
 package view;
 
+import interface_adapter.Dashboard.DashboardViewModel;
 import interface_adapter.logged_in.ChangePasswordController;
 import interface_adapter.logout.LogoutController;
 
@@ -26,6 +27,8 @@ public class DashboardView extends JPanel {
     private final TasksPanel tasksPanel;
     private final CalendarPanel calendarPanel;
 
+    private final DashboardViewModel dashboardViewModel;
+
     private ChangePasswordController changePasswordController = null;
     private LogoutController logoutController = null;
 
@@ -35,14 +38,20 @@ public class DashboardView extends JPanel {
     private final Color TEXT_LIGHT = Color.decode("#E6E6E6");
     private final Color BUTTON_BASE = PANEL_DARK;
 
-    public DashboardView(JFrame frame) {
+    /**
+     * Updated constructor to accept the DashboardViewModel.
+     * @param frame The main application JFrame.
+     * @param dashboardViewModel The ViewModel containing 'due soon' task data.
+     */
+    public DashboardView(JFrame frame, DashboardViewModel dashboardViewModel) {
         this.frame = frame;
+        this.dashboardViewModel = dashboardViewModel;
         this.cardLayout = new CardLayout();
         this.cardPanel = new JPanel(cardLayout);
 
-        this.homePanel = new HomePanel();
-        this.tasksPanel = new TasksPanel();
-        this.calendarPanel = new CalendarPanel(); // uses sharedViewModel / sharedCalendarController
+        this.homePanel = new HomePanel(this.dashboardViewModel);
+        this.tasksPanel = new TasksPanel(this.dashboardViewModel);
+        this.calendarPanel = new CalendarPanel();
 
         this.mainHeaderLabel = new JLabel("LockIn Dashboard", SwingConstants.CENTER);
 
