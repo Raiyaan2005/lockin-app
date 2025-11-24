@@ -1,5 +1,8 @@
 package view;
 
+import entity.Task;
+import interface_adapter.Dashboard.DashboardViewModel;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -8,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import entity.Task;
-
 public class TasksPanel extends JPanel {
 
     private JTable taskTable;
@@ -17,26 +18,26 @@ public class TasksPanel extends JPanel {
     private JButton addTaskBtn;
     private List<Task> allTasks = new ArrayList<>();
 
+    private final DashboardViewModel dashboardViewModel;
+
     public static interface_adapter.sync_task.SyncTaskToCalendarController syncController;
 
-    public TasksPanel() {
+    public TasksPanel(DashboardViewModel dashboardViewModel) {
+        this.dashboardViewModel = dashboardViewModel;
 
-        // Colours
-        Color panelDark = Color.decode("#020F28");     // navy background
+        Color panelDark = Color.decode("#020F28");
         Color tableBackground = Color.decode("#001F3F");
         Color textLight = Color.decode("#E6E6E6");
 
         setLayout(new BorderLayout());
         setBackground(panelDark);
 
-        // Title
         JLabel title = new JLabel("Task Manager", SwingConstants.CENTER);
         title.setFont(new Font("Georgia", Font.BOLD, 28));
         title.setForeground(textLight);
         title.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(title, BorderLayout.NORTH);
 
-        // Table columns
         String[] columnNames = {"Task", "Course", "Due Date", "Status"};
 
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -50,7 +51,6 @@ public class TasksPanel extends JPanel {
         taskTable.setFillsViewportHeight(true);
         taskTable.setRowHeight(30);
 
-        // styling
         taskTable.setBackground(tableBackground);
         taskTable.setForeground(textLight);
         taskTable.setFont(new Font("Georgia", Font.PLAIN, 14));
@@ -67,7 +67,6 @@ public class TasksPanel extends JPanel {
 
         add(scrollPane, BorderLayout.CENTER);
 
-        // Buttons
         addTaskBtn = new JButton("Add Task");
         addTaskBtn.setFont(new Font("Georgia", Font.BOLD, 16));
         addTaskBtn.setForeground(tableBackground);
@@ -92,7 +91,6 @@ public class TasksPanel extends JPanel {
 
         add(btnWrapper, BorderLayout.SOUTH);
 
-        // Button actions
         addTaskBtn.addActionListener(e -> openAddTaskPopup());
 
         sortByDateBtn.addActionListener(e -> {
@@ -109,9 +107,6 @@ public class TasksPanel extends JPanel {
         });
     }
 
-    // -------------------------
-    // Refresh table
-    // -------------------------
     private void refreshTable() {
         tableModel.setRowCount(0);
         for (Task t : allTasks) {
@@ -124,9 +119,6 @@ public class TasksPanel extends JPanel {
         }
     }
 
-    // -------------------------
-    // Popup
-    // -------------------------
     private void openAddTaskPopup() {
         JDialog popup = new JDialog((Frame) null, "Add New Task", true);
         popup.setSize(420, 450);
@@ -145,91 +137,61 @@ public class TasksPanel extends JPanel {
         Font labelFont = new Font("Georgia", Font.PLAIN, 16);
         Font fieldFont = new Font("Georgia", Font.PLAIN, 14);
 
-        // Task Name
         JLabel titleLabel = new JLabel("Task Name:");
         titleLabel.setForeground(textLight);
         titleLabel.setFont(labelFont);
-
         JTextField titleField = new JTextField();
         titleField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         titleField.setBackground(fieldDark);
         titleField.setForeground(textLight);
-        titleField.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         titleField.setFont(fieldFont);
 
-        // Course
         JLabel courseLabel = new JLabel("Course:");
         courseLabel.setForeground(textLight);
         courseLabel.setFont(labelFont);
-
         JTextField courseField = new JTextField();
         courseField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         courseField.setBackground(fieldDark);
         courseField.setForeground(textLight);
-        courseField.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         courseField.setFont(fieldFont);
 
-        // Description
         JLabel descLabel = new JLabel("Description:");
         descLabel.setForeground(textLight);
         descLabel.setFont(labelFont);
-
         JTextArea descArea = new JTextArea(4, 20);
         descArea.setLineWrap(true);
         descArea.setWrapStyleWord(true);
         descArea.setBackground(fieldDark);
         descArea.setForeground(textLight);
         descArea.setFont(fieldFont);
-        descArea.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-
         JScrollPane descScroll = new JScrollPane(descArea);
 
-        // Date
         JLabel dateLabel = new JLabel("Due Date (YYYY-MM-DD):");
         dateLabel.setForeground(textLight);
         dateLabel.setFont(labelFont);
-
         JTextField dateField = new JTextField();
         dateField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         dateField.setBackground(fieldDark);
         dateField.setForeground(textLight);
-        dateField.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         dateField.setFont(fieldFont);
 
-        // Completed checkbox
         JCheckBox completedCheck = new JCheckBox("Completed?");
         completedCheck.setFont(labelFont);
         completedCheck.setForeground(textLight);
         completedCheck.setBackground(panelDark);
 
-        // Add to form
-        form.add(titleLabel);
-        form.add(titleField);
-        form.add(Box.createVerticalStrut(10));
-
-        form.add(courseLabel);
-        form.add(courseField);
-        form.add(Box.createVerticalStrut(10));
-
-        form.add(descLabel);
-        form.add(descScroll);
-        form.add(Box.createVerticalStrut(10));
-
-        form.add(dateLabel);
-        form.add(dateField);
-        form.add(Box.createVerticalStrut(10));
-
+        form.add(titleLabel); form.add(titleField); form.add(Box.createVerticalStrut(10));
+        form.add(courseLabel); form.add(courseField); form.add(Box.createVerticalStrut(10));
+        form.add(descLabel); form.add(descScroll); form.add(Box.createVerticalStrut(10));
+        form.add(dateLabel); form.add(dateField); form.add(Box.createVerticalStrut(10));
         form.add(completedCheck);
 
         popup.add(form, BorderLayout.CENTER);
 
-        // Buttons
         JPanel buttons = new JPanel();
         buttons.setBackground(panelDark);
-
         JButton saveBtn = new JButton("Save Task");
         JButton cancelBtn = new JButton("Cancel");
-
         saveBtn.setFont(new Font("Georgia", Font.BOLD, 14));
         cancelBtn.setFont(new Font("Georgia", Font.BOLD, 14));
 
@@ -248,28 +210,25 @@ public class TasksPanel extends JPanel {
 
                 allTasks.add(newTask);
 
-                if (syncController != null) {
-                    syncController.sync(newTask);
-                }
+                if (dashboardViewModel != null) {
+                    dashboardViewModel.updateDueSoonTasks(allTasks);
+                }
 
-                refreshTable();
+                if (syncController != null) {
+                    syncController.sync(newTask);
+                }
+
+                refreshTable();
                 popup.dispose();
 
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(
-                        popup,
-                        "Invalid input. Please check fields.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                JOptionPane.showMessageDialog(popup, "Invalid input. Please check fields.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         cancelBtn.addActionListener(e -> popup.dispose());
-
         buttons.add(saveBtn);
         buttons.add(cancelBtn);
-
         popup.add(buttons, BorderLayout.SOUTH);
         popup.setVisible(true);
     }

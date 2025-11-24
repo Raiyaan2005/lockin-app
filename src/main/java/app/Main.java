@@ -3,6 +3,7 @@ package app;
 import javax.swing.*;
 
 import data_access.InMemoryCalendarRepository;
+import interface_adapter.Dashboard.DashboardViewModel;
 import interface_adapter.calendar.AddEventPresenter;
 import interface_adapter.calendar.CalendarController;
 import interface_adapter.calendar.CalendarViewModel;
@@ -28,6 +29,7 @@ public class Main {
 
             InMemoryCalendarRepository repo = new InMemoryCalendarRepository();
             CalendarViewModel calendarViewModel = new CalendarViewModel(repo);
+            DashboardViewModel dashboardViewModel = new DashboardViewModel();
 
             AddEventOutputBoundary addPresenter = new AddEventPresenter(calendarViewModel);
             AddEventInputBoundary addInteractor = new AddEventInteractor(repo, addPresenter);
@@ -49,13 +51,11 @@ public class Main {
 
             TasksPanel.syncController = syncController;
 
-
-
             AppBuilder appBuilder = new AppBuilder();
             JFrame application = appBuilder
                     .addLoginView()
                     .addSignupView()
-                    .addLoggedInView()
+                    .addLoggedInView(dashboardViewModel)
                     .addSignupUseCase()
                     .addLoginUseCase()
                     .addChangePasswordUseCase()

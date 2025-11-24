@@ -2,6 +2,7 @@ package app;
 
 import data_access.FileUserDataAccessObject;
 import entity.UserFactory;
+import interface_adapter.Dashboard.DashboardViewModel;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.logged_in.ChangePasswordController;
 import interface_adapter.logged_in.ChangePasswordPresenter;
@@ -33,7 +34,6 @@ import view.ViewManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 
 public class AppBuilder {
     private final JPanel cardPanel = new JPanel();
@@ -48,11 +48,12 @@ public class AppBuilder {
     private LoginViewModel loginViewModel;
     private SignupViewModel signupViewModel;
     private LoggedInViewModel loggedInViewModel;
+    private DashboardViewModel dashboardViewModel;
 
     // Views
     private LoginView loginView;
     private SignupView signupView;
-    private LoggedInView loggedInView; // <-- LoggedInView must be an accessible field
+    private LoggedInView loggedInView;
 
     public AppBuilder() {
         cardPanel.setLayout(cardLayout);
@@ -64,14 +65,14 @@ public class AppBuilder {
         loggedInViewModel = new LoggedInViewModel();
 
         // Initialize DAO and Factory
-        userDataAccessObject = new FileUserDataAccessObject("./users.csv", new UserFactory());
+        // Updated to handle File IO exception safely
+        this.userDataAccessObject = new FileUserDataAccessObject("./users.csv", new UserFactory());
+
         userFactory = new UserFactory();
 
         // Initialize ViewManager
         new ViewManager(cardPanel, cardLayout, viewManagerModel);
     }
-
-    // --- VIEW BUILDERS ---
 
     public AppBuilder addLoginView() {
         // Dependencies for Login
@@ -105,10 +106,16 @@ public class AppBuilder {
         return this;
     }
 
-    // --- NEW METHOD FOR LOGGEDIN VIEW ---
-    public AppBuilder addLoggedInView() {
-        // LoggedInView is instantiated without the JFrame here.
-        this.loggedInView = new LoggedInView(loggedInViewModel);
+    /**
+     * Instantiates the LoggedInView and injects the DashboardViewModel for use in HomePanel.
+     * @param dashboardViewModel The ViewModel containing the 'due soon' tasks.
+     * @return this AppBuilder instance.
+     */
+    public AppBuilder addLoggedInView(DashboardViewModel dashboardViewModel) {
+        this.dashboardViewModel = dashboardViewModel;
+
+        // LoggedInView must now accept the DashboardViewModel in its constructor
+        this.loggedInView = new LoggedInView(loggedInViewModel, this.dashboardViewModel);
 
         // Add the view to the CardPanel
         cardPanel.add(loggedInView, loggedInView.getViewName());
@@ -135,7 +142,6 @@ public class AppBuilder {
 
         ChangePasswordController changePasswordController = new ChangePasswordController(changePasswordInteractor);
 
-        // Pass controller to the LoggedInView field
         loggedInView.setChangePasswordController(changePasswordController);
         return this;
     }
@@ -149,17 +155,15 @@ public class AppBuilder {
 
         final LogoutController logoutController = new LogoutController(logoutInteractor);
 
-        // Pass controller to the LoggedInView field
         loggedInView.setLogoutController(logoutController);
         return this;
     }
 
     // --- MODIFIED BUILD METHOD ---
     public JFrame build() {
-        final JFrame application = new JFrame("User Login Example");
+        final JFrame application = new JFrame("LockIn");
         application.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        // CRITICAL STEP: Inject the new JFrame into LoggedInView now that it exists.
         if (loggedInView != null) {
             loggedInView.setApplicationFrame(application);
         }
@@ -172,6 +176,4 @@ public class AppBuilder {
 
         return application;
     }
-
-
 }
