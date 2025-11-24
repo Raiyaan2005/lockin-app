@@ -3,14 +3,19 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import entity.Task;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import entity.Task;
 
 public class TasksPanel extends JPanel {
 
     private JTable taskTable;
     private DefaultTableModel tableModel;
     private JButton addTaskBtn;
+    private List<Task> allTasks = new ArrayList<>();
 
     public static interface_adapter.sync_task.SyncTaskToCalendarController syncController;
 
@@ -31,7 +36,7 @@ public class TasksPanel extends JPanel {
         title.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(title, BorderLayout.NORTH);
 
-        // Table setup
+        // Table columns
         String[] columnNames = {"Task", "Course", "Due Date", "Status"};
 
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -45,13 +50,12 @@ public class TasksPanel extends JPanel {
         taskTable.setFillsViewportHeight(true);
         taskTable.setRowHeight(30);
 
-        // table styling
+        // styling
         taskTable.setBackground(tableBackground);
         taskTable.setForeground(textLight);
         taskTable.setFont(new Font("Georgia", Font.PLAIN, 14));
         taskTable.setGridColor(panelDark);
 
-        // table header
         taskTable.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 15));
         taskTable.getTableHeader().setBackground(panelDark);
         taskTable.getTableHeader().setForeground(textLight);
@@ -63,27 +67,69 @@ public class TasksPanel extends JPanel {
 
         add(scrollPane, BorderLayout.CENTER);
 
-        // Add Task button
+        // Buttons
         addTaskBtn = new JButton("Add Task");
-        addTaskBtn.setPreferredSize(new Dimension(120, 45));
         addTaskBtn.setFont(new Font("Georgia", Font.BOLD, 16));
         addTaskBtn.setForeground(tableBackground);
         addTaskBtn.setBackground(new Color(0x003366));
         addTaskBtn.setFocusPainted(false);
 
+        JButton sortByDateBtn = new JButton("Sort by Date");
+        sortByDateBtn.setFont(new Font("Georgia", Font.BOLD, 16));
+        sortByDateBtn.setForeground(tableBackground);
+        sortByDateBtn.setBackground(new Color(0x003366));
+
+        JButton sortByCourseBtn = new JButton("Sort by Course");
+        sortByCourseBtn.setFont(new Font("Georgia", Font.BOLD, 16));
+        sortByCourseBtn.setForeground(tableBackground);
+        sortByCourseBtn.setBackground(new Color(0x003366));
+
         JPanel btnWrapper = new JPanel();
         btnWrapper.setBackground(panelDark);
         btnWrapper.add(addTaskBtn);
+        btnWrapper.add(sortByDateBtn);
+        btnWrapper.add(sortByCourseBtn);
 
         add(btnWrapper, BorderLayout.SOUTH);
 
-        // Popup panel to add information
+        // Button actions
         addTaskBtn.addActionListener(e -> openAddTaskPopup());
+
+        sortByDateBtn.addActionListener(e -> {
+            allTasks.sort(Comparator.comparing(Task::getDate));
+            refreshTable();
+        });
+
+        sortByCourseBtn.addActionListener(e -> {
+            allTasks.sort(Comparator.comparing(
+                    Task::getCourse,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+            ));
+            refreshTable();
+        });
     }
 
+    // -------------------------
+    // Refresh table
+    // -------------------------
+    private void refreshTable() {
+        tableModel.setRowCount(0);
+        for (Task t : allTasks) {
+            tableModel.addRow(new Object[]{
+                    t.getTitle(),
+                    t.getCourse(),
+                    t.getDate(),
+                    t.isCompleted() ? "Done" : "Not started"
+            });
+        }
+    }
+
+    // -------------------------
+    // Popup
+    // -------------------------
     private void openAddTaskPopup() {
         JDialog popup = new JDialog((Frame) null, "Add New Task", true);
-        popup.setSize(420, 420);
+        popup.setSize(420, 450);
         popup.setLocationRelativeTo(null);
         popup.setLayout(new BorderLayout());
 
@@ -99,7 +145,7 @@ public class TasksPanel extends JPanel {
         Font labelFont = new Font("Georgia", Font.PLAIN, 16);
         Font fieldFont = new Font("Georgia", Font.PLAIN, 14);
 
-        // Title
+        // Task Name
         JLabel titleLabel = new JLabel("Task Name:");
         titleLabel.setForeground(textLight);
         titleLabel.setFont(labelFont);
@@ -110,6 +156,18 @@ public class TasksPanel extends JPanel {
         titleField.setForeground(textLight);
         titleField.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         titleField.setFont(fieldFont);
+
+        // Course
+        JLabel courseLabel = new JLabel("Course:");
+        courseLabel.setForeground(textLight);
+        courseLabel.setFont(labelFont);
+
+        JTextField courseField = new JTextField();
+        courseField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        courseField.setBackground(fieldDark);
+        courseField.setForeground(textLight);
+        courseField.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
+        courseField.setFont(fieldFont);
 
         // Description
         JLabel descLabel = new JLabel("Description:");
@@ -126,7 +184,7 @@ public class TasksPanel extends JPanel {
 
         JScrollPane descScroll = new JScrollPane(descArea);
 
-        // ---- DATE ----
+        // Date
         JLabel dateLabel = new JLabel("Due Date (YYYY-MM-DD):");
         dateLabel.setForeground(textLight);
         dateLabel.setFont(labelFont);
@@ -138,37 +196,29 @@ public class TasksPanel extends JPanel {
         dateField.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         dateField.setFont(fieldFont);
 
-        // ---- TYPE ----
-        JLabel typeLabel = new JLabel("Type:");
-        typeLabel.setForeground(panelDark);
-        typeLabel.setFont(labelFont);
-
-        String[] types = {"Assignment", "Test", "Event", "Reminder", "Other"};
-        JComboBox<String> typeDropdown = new JComboBox<>(types);
-        typeDropdown.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
-        typeDropdown.setFont(fieldFont);
-        typeDropdown.setBackground(fieldDark);
-        typeDropdown.setForeground(textLight);
-
-        // ---- COMPLETED ----
+        // Completed checkbox
         JCheckBox completedCheck = new JCheckBox("Completed?");
         completedCheck.setFont(labelFont);
         completedCheck.setForeground(textLight);
         completedCheck.setBackground(panelDark);
 
-        // Add all fields in order
+        // Add to form
         form.add(titleLabel);
         form.add(titleField);
         form.add(Box.createVerticalStrut(10));
+
+        form.add(courseLabel);
+        form.add(courseField);
+        form.add(Box.createVerticalStrut(10));
+
         form.add(descLabel);
         form.add(descScroll);
         form.add(Box.createVerticalStrut(10));
+
         form.add(dateLabel);
         form.add(dateField);
         form.add(Box.createVerticalStrut(10));
-        form.add(typeLabel);
-        form.add(typeDropdown);
-        form.add(Box.createVerticalStrut(10));
+
         form.add(completedCheck);
 
         popup.add(form, BorderLayout.CENTER);
@@ -185,38 +235,30 @@ public class TasksPanel extends JPanel {
 
         saveBtn.addActionListener(e -> {
             try {
-                // Create Task object using your entity
                 Task newTask = new Task(
-                        (int) (Math.random() * 1000000),          // temporary ID
+                        (int)(Math.random() * 1_000_000),
                         titleField.getText(),
                         descArea.getText(),
-                        LocalDate.parse(dateField.getText()),
-                        (String) typeDropdown.getSelectedItem()
+                        LocalDate.parse(dateField.getText()), courseField.getText()
                 );
 
                 if (completedCheck.isSelected()) {
                     newTask.markCompleted();
                 }
 
-                if (syncController != null) {
-                    syncController.sync(newTask);
-                }
+                allTasks.add(newTask);
 
+                if (syncController != null) {
+                    syncController.sync(newTask);
+                }
 
-                // Add row to table
-                tableModel.addRow(new Object[]{
-                        newTask.getTitle(),
-                        newTask.getType(),
-                        newTask.getDate(),
-                        newTask.isCompleted() ? "Done" : "Not started"
-                });
-
+                refreshTable();
                 popup.dispose();
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
                         popup,
-                        "Invalid date format or missing fields.",
+                        "Invalid input. Please check fields.",
                         "Error",
                         JOptionPane.ERROR_MESSAGE
                 );
@@ -231,5 +273,4 @@ public class TasksPanel extends JPanel {
         popup.add(buttons, BorderLayout.SOUTH);
         popup.setVisible(true);
     }
-
 }
