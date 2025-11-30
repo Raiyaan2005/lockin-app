@@ -1,11 +1,11 @@
 package interfaceadapter.calendar;
 
-import entity.Event;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.time.LocalDate;
 import java.util.List;
+
+import entity.Event;
 import usecase.calendar.CalendarRepository;
 
 public class CalendarViewModel {

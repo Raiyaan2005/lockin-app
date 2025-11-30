@@ -1,6 +1,13 @@
 package view;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseAdapter;
+
 import dataaccess.InMemoryTasksDataAccess;
+import dataaccess.QuoteApiClient;
+import entity.Quote;
 import interfaceadapter.dashboard.DashboardViewModel;
 import interfaceadapter.logged_in.ChangePasswordController;
 import interfaceadapter.logout.LogoutController;
@@ -8,14 +15,6 @@ import interfaceadapter.tasks.TasksController;
 import interfaceadapter.tasks.TasksPresenter;
 import interfaceadapter.tasks.TasksViewModel;
 import usecase.tasks.TasksInteractor;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
-import data_access.QuoteApiClient;
-import entity.Quote;
 
 public class DashboardView extends JPanel {
 
