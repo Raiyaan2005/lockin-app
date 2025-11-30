@@ -2,24 +2,24 @@ package app;
 
 import javax.swing.*;
 
-import data_access.InMemoryCalendarRepository;
-import interface_adapter.Dashboard.DashboardViewModel;
-import interface_adapter.calendar.AddEventPresenter;
-import interface_adapter.calendar.CalendarController;
-import interface_adapter.calendar.CalendarViewModel;
-import interface_adapter.calendar.ViewCalendarPresenter;
-import use_case.calendar.AddEventInputBoundary;
-import use_case.calendar.AddEventInteractor;
-import use_case.calendar.AddEventOutputBoundary;
-import use_case.calendar.ViewCalendarInputBoundary;
-import use_case.calendar.ViewCalendarInteractor;
-import use_case.calendar.ViewCalendarOutputBoundary;
+import dataaccess.InMemoryCalendarRepository;
+import interfaceadapter.dashboard.DashboardViewModel;
+import interfaceadapter.calendar.AddEventPresenter;
+import interfaceadapter.calendar.CalendarController;
+import interfaceadapter.calendar.CalendarViewModel;
+import interfaceadapter.calendar.ViewCalendarPresenter;
+import usecase.calendar.AddEventInputBoundary;
+import usecase.calendar.AddEventInteractor;
+import usecase.calendar.AddEventOutputBoundary;
+import usecase.calendar.ViewCalendarInputBoundary;
+import usecase.calendar.ViewCalendarInteractor;
+import usecase.calendar.ViewCalendarOutputBoundary;
 import view.CalendarPanel;
-import interface_adapter.sync_task.SyncTaskToCalendarController;
-import interface_adapter.sync_task.SyncTaskToCalendarPresenter;
-import use_case.sync_task.SyncTaskToCalendarInputBoundary;
-import use_case.sync_task.SyncTaskToCalendarInteractor;
-import use_case.sync_task.SyncTaskToCalendarOutputBoundary;
+import interfaceadapter.sync_task.SyncTaskToCalendarController;
+import interfaceadapter.sync_task.SyncTaskToCalendarPresenter;
+import usecase.sync_task.SyncTaskToCalendarInputBoundary;
+import usecase.sync_task.SyncTaskToCalendarInteractor;
+import usecase.sync_task.SyncTaskToCalendarOutputBoundary;
 import view.TasksPanel;
 
 

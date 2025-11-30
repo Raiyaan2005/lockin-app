@@ -1,8 +1,8 @@
 package view;
 
 import entity.Event;
-import interface_adapter.calendar.CalendarController;
-import interface_adapter.calendar.CalendarViewModel;
+import interfaceadapter.calendar.CalendarController;
+import interfaceadapter.calendar.CalendarViewModel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

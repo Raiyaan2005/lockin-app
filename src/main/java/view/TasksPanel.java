@@ -1,8 +1,8 @@
 package view;
 
-import data_access.InMemoryTasksDataAccess;
+import dataaccess.InMemoryTasksDataAccess;
 import entity.Task;
-import interface_adapter.Dashboard.DashboardViewModel;
+import interfaceadapter.dashboard.DashboardViewModel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -23,7 +23,7 @@ public class TasksPanel extends JPanel {
     private List<Task> allTasks;
 
     private final DashboardViewModel dashboardViewModel;
-    public static interface_adapter.sync_task.SyncTaskToCalendarController syncController;
+    public static interfaceadapter.sync_task.SyncTaskToCalendarController syncController;
 
     // ⭐ UPDATED — now requires repository so UI and use case share data
     public TasksPanel(DashboardViewModel dashboardViewModel,

@@ -1,8 +1,10 @@
 package use_case.sync_task;
 
 import entity.Task;
-import interface_adapter.calendar.CalendarController;
+import interfaceadapter.calendar.CalendarController;
 import org.junit.jupiter.api.Test;
+import usecase.sync_task.SyncTaskToCalendarInteractor;
+import usecase.sync_task.SyncTaskToCalendarOutputBoundary;
 
 import java.awt.*;
 import java.time.LocalDate;
