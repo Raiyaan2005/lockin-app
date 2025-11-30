@@ -27,7 +27,8 @@ TASK MANAGER
 - (ELLA) As a user, I want to be able to sort the tasks on my todolist by course, assignment type, and due date so I can categorize and prioritize what I need to work on.
 
 CALENDAR
-- As a user, I want to be able to add assignments and other events to my calendar so I can visually see what needs to be done.
+- (ANGEL) As a user, I want to be able to add assignments and other events to my calendar so I can visually see what needs to be done.
+- (ANGEL) As a user, I want the assignments added to my task manager to be showed on my calendar.
 
 LOGIN/LOGOUT
 - (ZEN) As a user, I want to be able to sign up, and login/out of the application.

@@ -1,35 +1,27 @@
 package use_case.tasks;
 
-import use_case.tasks.TasksOutputBoundary;
-import interface_adapter.tasks.dto.CourseDTO;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class TasksInteractor implements TasksInputBoundary {
 
-    private final TasksOutputBoundary presenter;
-    private final TasksDataAccessInterface dataAccess;
+    private final TasksDataAccessInterface tasksDataAccess;
+    private final TasksOutputBoundary tasksPresenter;
 
-    public TasksInteractor(TasksOutputBoundary presenter, TasksDataAccessInterface dataAccess) {
-        this.presenter = presenter;
-        this.dataAccess = dataAccess;
+    public TasksInteractor(TasksDataAccessInterface tasksDataAccess, TasksOutputBoundary tasksPresenter) {
+        this.tasksDataAccess = tasksDataAccess;
+        this.tasksPresenter = tasksPresenter;
     }
 
     @Override
     public void execute(TasksInputData inputData) {
         try {
-            // Fetch courses and tasks from data access
-            List<CourseDTO> courses = dataAccess.getCourses();
+            var tasks = tasksDataAccess.getAllTasks();
 
-            // Wrap in output data
-            TasksOutputData outputData = new TasksOutputData(courses);
+            TasksOutputData outputData = new TasksOutputData(tasks);
 
-            // Send to presenter
-            presenter.prepareSuccessView(outputData);
+            tasksPresenter.prepareSuccessView(outputData);
 
         } catch (Exception e) {
-            presenter.prepareFailView("Failed to load tasks: " + e.getMessage());
+            tasksPresenter.prepareFailView("Failed to load tasks.");
         }
     }
 }
+

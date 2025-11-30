@@ -1,49 +1,32 @@
 package interface_adapter.tasks;
 
-import interface_adapter.tasks.dto.CourseDTO;
-
+import entity.Task;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
 
 public class TasksViewModel {
 
-    private List<CourseDTO> courses;
-    private String error;
+    private final PropertyChangeSupport support = new PropertyChangeSupport(this);
+    private List<Task> tasks;
 
-    private final PropertyChangeSupport pcs;
-
-    public TasksViewModel() {
-        pcs = new PropertyChangeSupport(this);
+    public List<Task> getTasks() {
+        return tasks;
     }
 
-    // Courses
-    public List<CourseDTO> getCourses() {
-        return courses;
-    }
-
-    public void setCourses(List<CourseDTO> courses) {
-        List<CourseDTO> old = this.courses;
-        this.courses = courses;
-        pcs.firePropertyChange("courses", old, courses);
-    }
-
-    // Error
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        String old = this.error;
-        this.error = error;
-        pcs.firePropertyChange("error", old, error);
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
+        support.addPropertyChangeListener(listener);
     }
 
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
+    public void firePropertyChanged() {
+        support.firePropertyChange("tasks", null, tasks);
+    }
+
+    public void setError(String error) {
+
     }
 }

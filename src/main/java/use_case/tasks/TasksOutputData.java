@@ -1,16 +1,17 @@
 package use_case.tasks;
 
-import interface_adapter.tasks.dto.CourseDTO;
+import entity.Task;
 import java.util.List;
 
 public class TasksOutputData {
-    private final List<CourseDTO> courses;
 
-    public TasksOutputData(List<CourseDTO> courses) {
-        this.courses = courses;
+    private final List<Task> tasks;
+
+    public TasksOutputData(List<Task> tasks) {
+        this.tasks = tasks;
     }
 
-    public List<CourseDTO> getCourses() {
-        return courses;
+    public List<Task> getTasks() {
+        return tasks;
     }
 }
