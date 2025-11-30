@@ -1,5 +1,7 @@
 package view;
 
+import dataaccess.InMemoryTasksDataAccess;
+import interfaceadapter.dashboard.DashboardController;
 import interfaceadapter.dashboard.DashboardViewModel;
 import interfaceadapter.logged_in.ChangePasswordController;
 import interfaceadapter.logged_in.LoggedInState;
@@ -23,6 +25,10 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
     private final LoggedInViewModel loggedInViewModel;
     private final DashboardViewModel dashboardViewModel;
 
+    // 1. Add fields for the dependencies needed by DashboardView
+    private final DashboardController dashboardController;
+    private final InMemoryTasksDataAccess tasksDataAccess;
+
     private DashboardView dashboard = null;
     private JFrame applicationFrame = null;
 
@@ -30,13 +36,18 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
     private LogoutController logoutController = null;
 
     /**
-     * Updated Constructor to accept both required ViewModels.
-     * @param loggedInViewModel The ViewModel for authentication state.
-     * @param dashboardViewModel The ViewModel containing data for the HomePanel.
+     * Updated Constructor to accept all dependencies required to build the Dashboard.
      */
-    public LoggedInView(LoggedInViewModel loggedInViewModel, DashboardViewModel dashboardViewModel) {
+    public LoggedInView(LoggedInViewModel loggedInViewModel,
+                        DashboardViewModel dashboardViewModel,
+                        DashboardController dashboardController,
+                        InMemoryTasksDataAccess tasksDataAccess) {
+
         this.loggedInViewModel = loggedInViewModel;
         this.dashboardViewModel = dashboardViewModel;
+        this.dashboardController = dashboardController;
+        this.tasksDataAccess = tasksDataAccess;
+
         this.loggedInViewModel.addPropertyChangeListener(this);
         this.setLayout(new BorderLayout());
         this.add(new JLabel("Loading Dashboard...", SwingConstants.CENTER), BorderLayout.CENTER);
@@ -52,8 +63,12 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
         }
 
         this.applicationFrame = applicationFrame;
-
-        this.dashboard = new DashboardView(this.applicationFrame, this.dashboardViewModel);
+        this.dashboard = new DashboardView(
+                this.applicationFrame,
+                this.dashboardViewModel,
+                this.dashboardController,
+                this.tasksDataAccess
+        );
 
         this.removeAll();
         this.add(dashboard, BorderLayout.CENTER);
