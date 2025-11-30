@@ -166,7 +166,17 @@ public class CalendarPanel extends JPanel implements PropertyChangeListener {
 
         grid.removeAll();
 
-        for (DayOfWeek d : DayOfWeek.values()) {
+        DayOfWeek[] order = {
+                DayOfWeek.SUNDAY,
+                DayOfWeek.MONDAY,
+                DayOfWeek.TUESDAY,
+                DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY,
+                DayOfWeek.FRIDAY,
+                DayOfWeek.SATURDAY
+        };
+
+        for (DayOfWeek d : order) {
             JLabel l = new JLabel(d.name().substring(0, 3), SwingConstants.CENTER);
             l.setOpaque(true);
             l.setBackground(new Color(245, 245, 245));
