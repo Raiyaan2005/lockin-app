@@ -21,7 +21,7 @@ HOME PAGE
 - (RAIYAAN) As a user, I want to have a build in stopwatch to time my studies.
 
 TASK MANAGER
-- (ELLA) As a user, when I select Task Manager I want to see all of my courses and their respective todo-lists laid out so I can see how much needs to be done.
+- (ELLA) As a user, when I select Task Manager I want to see all of my tasks laid out so I can see how much needs to be done.
 - (ELLA) As a user, I want to be able to add all of my assignments, tests, and reminders to the task manager with information like a due date and  description so I can stay organized.
 - (ELLA) As a user, I want to be able to add, edit, and remove tasks from my todo lists, so I can adjust my lists if needed.
 - (ELLA) As a user, I want to be able to sort the tasks on my todolist by course, assignment type, and due date so I can categorize and prioritize what I need to work on.
