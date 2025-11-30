@@ -1,7 +1,7 @@
 package view;
 
-import interface_adapter.tasks.dto.TaskDTO;
-import interface_adapter.Dashboard.DashboardViewModel;
+import interfaceadapter.tasks.dto.TaskDTO;
+import interfaceadapter.dashboard.DashboardViewModel;
 
 import javax.swing.*;
 import java.awt.*;

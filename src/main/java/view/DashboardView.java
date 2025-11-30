@@ -1,13 +1,13 @@
 package view;
 
-import data_access.InMemoryTasksDataAccess;
-import interface_adapter.Dashboard.DashboardViewModel;
-import interface_adapter.logged_in.ChangePasswordController;
-import interface_adapter.logout.LogoutController;
-import interface_adapter.tasks.TasksController;
-import interface_adapter.tasks.TasksPresenter;
-import interface_adapter.tasks.TasksViewModel;
-import use_case.tasks.TasksInteractor;
+import dataaccess.InMemoryTasksDataAccess;
+import interfaceadapter.dashboard.DashboardViewModel;
+import interfaceadapter.logged_in.ChangePasswordController;
+import interfaceadapter.logout.LogoutController;
+import interfaceadapter.tasks.TasksController;
+import interfaceadapter.tasks.TasksPresenter;
+import interfaceadapter.tasks.TasksViewModel;
+import usecase.tasks.TasksInteractor;
 
 import javax.swing.*;
 import java.awt.*;
