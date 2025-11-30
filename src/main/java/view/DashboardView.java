@@ -14,6 +14,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import data_access.QuoteApiClient;
+import entity.Quote;
+
 public class DashboardView extends JPanel {
 
     private static final String HOME_CARD = "Dashboard";
@@ -47,7 +50,8 @@ public class DashboardView extends JPanel {
 
     /**
      * Updated constructor to accept the DashboardViewModel.
-     * @param frame The main application JFrame.
+     *
+     * @param frame              The main application JFrame.
      * @param dashboardViewModel The ViewModel containing 'due soon' task data.
      */
 
@@ -79,6 +83,7 @@ public class DashboardView extends JPanel {
     private void initUI() {
         setLayout(new BorderLayout(10, 10));
 
+        // ----- Header (title only) -----
         mainHeaderLabel.setFont(new Font("Georgia", Font.BOLD, 32));
         mainHeaderLabel.setOpaque(true);
         mainHeaderLabel.setBackground(PANEL_DARK);
@@ -86,14 +91,14 @@ public class DashboardView extends JPanel {
         mainHeaderLabel.setPreferredSize(new Dimension(0, 80));
         add(mainHeaderLabel, BorderLayout.NORTH);
 
+        // ----- Center cards -----
         cardPanel.setBackground(BG_BLACK);
-
         cardPanel.add(homePanel, HOME_CARD);
         cardPanel.add(tasksPanel, TASK_MANAGER_CARD);
         cardPanel.add(calendarPanel, CALENDAR_CARD);
-
         add(cardPanel, BorderLayout.CENTER);
 
+        // ----- Sidebar -----
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new GridLayout(4, 1, 0, 0));
         sidebar.setBackground(BG_BLACK);
@@ -133,7 +138,7 @@ public class DashboardView extends JPanel {
             });
 
             btn.addActionListener(e -> {
-                if (currentSelectedButton != null) {
+                if (currentSelectedButton != null && currentSelectedButton != btn) {
                     currentSelectedButton.setBackground(BUTTON_BASE);
                 }
                 currentSelectedButton = btn;
@@ -184,11 +189,35 @@ public class DashboardView extends JPanel {
 
         cardLayout.show(cardPanel, HOME_CARD);
         this.setBackground(BG_BLACK);
+
+        // Load quote from external API and send it to the HomePanel
+        loadQuoteAsync();
     }
 
+    /**
+     * Calls the external quotes API on a background thread and updates the HomePanel.
+     */
+    private void loadQuoteAsync() {
+        new Thread(() -> {
+            QuoteApiClient client = new QuoteApiClient();
+            try {
+                Quote q = client.fetchRandomQuote();
+                String html = "<html><div style='text-align:right;'>" +
+                        "<i>\"" + q.getContent() + "\"</i><br/>— " + q.getAuthor() +
+                        "</div></html>";
+
+                SwingUtilities.invokeLater(() -> homePanel.setQuoteText(html));
+            } catch (Exception ex) {
+                ex.printStackTrace(); // so you can see why it failed in the run console
+                SwingUtilities.invokeLater(() ->
+                        homePanel.setQuoteText("Could not load quote."));
+            }
+        }).start();
+    }
 
     /**
      * Called by LoggedInView to update the welcome message on the Home Panel.
+     *
      * @param username The username of the currently logged-in user.
      */
     public void updateUsername(String username) {
