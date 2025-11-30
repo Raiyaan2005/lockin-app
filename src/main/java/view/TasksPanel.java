@@ -25,29 +25,32 @@ public class TasksPanel extends JPanel {
     private final DashboardViewModel dashboardViewModel;
     public static interface_adapter.sync_task.SyncTaskToCalendarController syncController;
 
-    // ⭐ UPDATED — now requires repository so UI and use case share data
     public TasksPanel(DashboardViewModel dashboardViewModel,
                       InMemoryTasksDataAccess tasksDataAccess) {
 
         this.dashboardViewModel = dashboardViewModel;
         this.tasksDataAccess = tasksDataAccess;
 
-        // ⭐ Use shared task list (NOT new ArrayList)
+        // Shared task list
         this.allTasks = tasksDataAccess.getAllTasks();
 
+        // -------- Colours --------
         Color panelDark = Color.decode("#020F28");
         Color tableBackground = Color.decode("#001F3F");
         Color textLight = Color.decode("#E6E6E6");
+        Color buttonBlue = new Color(0x003366);
 
         setLayout(new BorderLayout());
         setBackground(panelDark);
 
+        // -------- Title --------
         JLabel title = new JLabel("Task Manager", SwingConstants.CENTER);
         title.setFont(new Font("Georgia", Font.BOLD, 28));
         title.setForeground(textLight);
         title.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(title, BorderLayout.NORTH);
 
+        // -------- Table --------
         String[] columnNames = {"Task", "Course", "Due Date", "Status"};
 
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -74,28 +77,28 @@ public class TasksPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(taskTable);
         scrollPane.getViewport().setBackground(panelDark);
         scrollPane.setBorder(null);
-
         add(scrollPane, BorderLayout.CENTER);
 
+        // -------- Buttons bottom row --------
         addTaskBtn = new JButton("Add Task");
         addTaskBtn.setFont(new Font("Georgia", Font.BOLD, 16));
-        addTaskBtn.setForeground(tableBackground);
-        addTaskBtn.setBackground(new Color(0x003366));
+        addTaskBtn.setForeground(buttonBlue);
+        addTaskBtn.setBackground(buttonBlue);
 
         deleteTaskBtn = new JButton("Delete Task");
         deleteTaskBtn.setFont(new Font("Georgia", Font.BOLD, 16));
-        deleteTaskBtn.setForeground(tableBackground);
+        deleteTaskBtn.setForeground(buttonBlue);
         deleteTaskBtn.setBackground(new Color(0x660000));
 
         JButton sortByDateBtn = new JButton("Sort by Date");
         sortByDateBtn.setFont(new Font("Georgia", Font.BOLD, 16));
-        sortByDateBtn.setForeground(tableBackground);
-        sortByDateBtn.setBackground(new Color(0x003366));
+        sortByDateBtn.setForeground(buttonBlue);
+        sortByDateBtn.setBackground(buttonBlue);
 
         JButton sortByCourseBtn = new JButton("Sort by Course");
         sortByCourseBtn.setFont(new Font("Georgia", Font.BOLD, 16));
-        sortByCourseBtn.setForeground(tableBackground);
-        sortByCourseBtn.setBackground(new Color(0x003366));
+        sortByCourseBtn.setForeground(buttonBlue);
+        sortByCourseBtn.setBackground(buttonBlue);
 
         JPanel btnWrapper = new JPanel();
         btnWrapper.setBackground(panelDark);
@@ -103,26 +106,33 @@ public class TasksPanel extends JPanel {
         btnWrapper.add(deleteTaskBtn);
         btnWrapper.add(sortByDateBtn);
         btnWrapper.add(sortByCourseBtn);
-
         add(btnWrapper, BorderLayout.SOUTH);
 
-        // ACTIONS
+        // -------- Actions --------
+
+        // Add new task
         addTaskBtn.addActionListener(e -> openTaskPopup(null));
+
+        // Delete selected task
         deleteTaskBtn.addActionListener(e -> deleteSelectedTask());
 
+        // Sort by date
         sortByDateBtn.addActionListener(e -> {
-            allTasks.sort(Comparator.comparing(Task::getDate));
-            refreshTable();
+            allTasks.sort(Comparator.comparing(Task::getDate,
+                    Comparator.nullsLast(Comparator.naturalOrder())));
+            refreshTable(false); // don't reload from repo, just redraw in this order
         });
 
+        // Sort by course
         sortByCourseBtn.addActionListener(e -> {
             allTasks.sort(Comparator.comparing(
                     Task::getCourse,
                     Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
             ));
-            refreshTable();
+            refreshTable(false);
         });
 
+        // Double-click to edit
         taskTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -132,11 +142,20 @@ public class TasksPanel extends JPanel {
             }
         });
 
-        refreshTable();
+        // First load
+        refreshTable(true);
     }
 
-    private void refreshTable() {
+    /**
+     * Redraws the table. If reloadFromRepo = true,
+     * we pull tasks again from the shared InMemoryTasksDataAccess.
+     */
+    private void refreshTable(boolean reloadFromRepo) {
         tableModel.setRowCount(0);
+
+        if (reloadFromRepo) {
+            allTasks = tasksDataAccess.getAllTasks();
+        }
 
         for (Task t : allTasks) {
             tableModel.addRow(new Object[]{
@@ -156,15 +175,18 @@ public class TasksPanel extends JPanel {
         }
 
         Task task = allTasks.get(selectedRow);
-        tasksDataAccess.removeTask(task);
+        tasksDataAccess.removeTask(task);  // only removes from our task repo
 
-        refreshTable();
+        // reload from repo so indices line up again
+        refreshTable(true);
     }
 
     private void openTaskPopup(Task taskToEdit) {
         boolean editing = (taskToEdit != null);
 
-        JDialog popup = new JDialog((Frame) null, editing ? "Edit Task" : "Add New Task", true);
+        JDialog popup = new JDialog((Frame) null,
+                editing ? "Edit Task" : "Add New Task",
+                true);
         popup.setSize(420, 450);
         popup.setLocationRelativeTo(null);
         popup.setLayout(new BorderLayout());
@@ -250,13 +272,11 @@ public class TasksPanel extends JPanel {
         buttons.setBackground(panelDark);
         buttons.add(saveBtn);
         buttons.add(cancelBtn);
-
         popup.add(buttons, BorderLayout.SOUTH);
 
         saveBtn.addActionListener(e -> {
             try {
                 if (editing) {
-                    // ---- EDIT EXISTING TASK ----
                     taskToEdit.setTitle(titleField.getText());
                     taskToEdit.setCourse(courseField.getText());
                     taskToEdit.setDescription(descArea.getText());
@@ -266,7 +286,6 @@ public class TasksPanel extends JPanel {
                     tasksDataAccess.updateTask(taskToEdit);
 
                 } else {
-                    // ---- CREATE NEW TASK ----
                     Task newTask = new Task(
                             (int)(Math.random() * 1_000_000),
                             titleField.getText(),
@@ -274,14 +293,25 @@ public class TasksPanel extends JPanel {
                             LocalDate.parse(dateField.getText()),
                             courseField.getText()
                     );
-
                     newTask.setCompleted(completedCheck.isSelected());
+
                     tasksDataAccess.addTask(newTask);
+
+                    // sync to calendar if enabled
+                    if (CalendarPanel.sharedCalendarController != null) {
+                        CalendarPanel.sharedCalendarController.addEvent(
+                                newTask.getTitle(),
+                                newTask.getDate(),
+                                Color.BLUE
+                        );
+                    }
                 }
 
-                // Refresh visible list after edit/add
                 allTasks = tasksDataAccess.getAllTasks();
-                refreshTable();
+                refreshTable(true);
+
+                // ⭐ IMPORTANT: Update dashboard due-soon list again
+                dashboardViewModel.updateDueSoonTasks(allTasks);
 
                 popup.dispose();
 
@@ -297,7 +327,7 @@ public class TasksPanel extends JPanel {
 
 
         cancelBtn.addActionListener(e -> popup.dispose());
+
         popup.setVisible(true);
     }
-
 }
