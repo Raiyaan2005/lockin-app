@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class HomePanel extends JPanel implements PropertyChangeListener {
 
     private final JLabel welcomeLabel;
+    private final JLabel quoteLabel;
     private final JPanel mainContentPanel;
     private final DashboardViewModel dashboardViewModel;
     private final List<JPanel> taskInfoPanels;
@@ -31,13 +32,22 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
         this.setLayout(new BorderLayout());
         this.setBackground(BG_BLACK);
 
-        JPanel welcomePanel = new JPanel(new GridBagLayout());
+        // ----- Top welcome + quote bar -----
+        JPanel welcomePanel = new JPanel(new BorderLayout());
         welcomePanel.setBackground(PANEL_DARK.brighter());
-        welcomeLabel = new JLabel("Welcome Home! (Loading username...)");
+        welcomePanel.setPreferredSize(new Dimension(0, 120));
+        welcomePanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        welcomeLabel = new JLabel("Welcome Home! (Loading username...)", SwingConstants.LEFT);
         welcomeLabel.setFont(new Font("Georgia", Font.BOLD, 28));
         welcomeLabel.setForeground(TEXT_LIGHT);
-        welcomePanel.add(welcomeLabel);
-        welcomePanel.setPreferredSize(new Dimension(0, 120));
+
+        quoteLabel = new JLabel("", SwingConstants.RIGHT);
+        quoteLabel.setFont(new Font("Georgia", Font.ITALIC, 20));
+        quoteLabel.setForeground(TEXT_LIGHT);
+
+        welcomePanel.add(welcomeLabel, BorderLayout.CENTER);
+        welcomePanel.add(quoteLabel, BorderLayout.EAST);
 
         mainContentPanel = new JPanel(new GridLayout(2, 1, 0, 0));
         mainContentPanel.setBackground(BG_BLACK);
@@ -237,6 +247,14 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
     public void setUsername(String username) {
         this.welcomeLabel.setText("Welcome, " + username + "!");
+    }
+
+    /**
+     * Called by DashboardView when the quote API returns.
+     * Accepts HTML so we can format the text nicely.
+     */
+    public void setQuoteText(String text) {
+        this.quoteLabel.setText(text);
     }
 
     private JPanel createPlaceholderPanel() {
