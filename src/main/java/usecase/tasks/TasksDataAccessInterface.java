@@ -5,4 +5,10 @@ import java.util.List;
 
 public interface TasksDataAccessInterface {
     List<Task> getAllTasks();
+
+    void addTask(Task task);
+
+    void updateTask(Task task);
+
+    void removeTask(Task task);
 }
