@@ -1,18 +1,18 @@
 package dataaccess;
 
 import entity.Task;
+import usecase.dashboard.DashboardDataAccessInterface;
 import usecase.tasks.TasksDataAccessInterface;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class InMemoryTasksDataAccess implements TasksDataAccessInterface {
+public class InMemoryTasksDataAccess implements TasksDataAccessInterface, DashboardDataAccessInterface {
 
     private final List<Task> tasks = new ArrayList<>();
 
     @Override
     public List<Task> getAllTasks() {
-        // This is what the Interactor will use
         return new ArrayList<>(tasks);
     }
 

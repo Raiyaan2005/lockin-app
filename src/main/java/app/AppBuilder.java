@@ -1,9 +1,12 @@
 package app;
 
 import dataaccess.FileUserDataAccessObject;
+import dataaccess.InMemoryTasksDataAccess;
 import entity.UserFactory;
-import interfaceadapter.dashboard.DashboardViewModel;
 import interfaceadapter.ViewManagerModel;
+import interfaceadapter.dashboard.DashboardController;
+import interfaceadapter.dashboard.DashboardPresenter;
+import interfaceadapter.dashboard.DashboardViewModel;
 import interfaceadapter.logged_in.ChangePasswordController;
 import interfaceadapter.logged_in.ChangePasswordPresenter;
 import interfaceadapter.logged_in.LoggedInViewModel;
@@ -18,6 +21,9 @@ import interfaceadapter.signup.SignupViewModel;
 import usecase.change_password.ChangePasswordInputBoundary;
 import usecase.change_password.ChangePasswordInteractor;
 import usecase.change_password.ChangePasswordOutputBoundary;
+import usecase.dashboard.DashboardInputBoundary;
+import usecase.dashboard.DashboardInteractor;
+import usecase.dashboard.DashboardOutputBoundary;
 import usecase.login.LoginInputBoundary;
 import usecase.login.LoginInteractor;
 import usecase.login.LoginOutputBoundary;
@@ -65,7 +71,6 @@ public class AppBuilder {
         loggedInViewModel = new LoggedInViewModel();
 
         // Initialize DAO and Factory
-        // Updated to handle File IO exception safely
         this.userDataAccessObject = new FileUserDataAccessObject("./users.csv", new UserFactory());
 
         userFactory = new UserFactory();
@@ -96,7 +101,8 @@ public class AppBuilder {
         // Dependencies for Signup
         final SignupOutputBoundary signupOutputBoundary = new SignupPresenter(viewManagerModel,
                 signupViewModel, loginViewModel);
-        final SignupInputBoundary signupInteractor = new SignupInteractor(userDataAccessObject, signupOutputBoundary, userFactory);
+        final SignupInputBoundary signupInteractor = new SignupInteractor(
+                userDataAccessObject, signupOutputBoundary, userFactory);
         final SignupController signupController = new SignupController(signupInteractor);
 
         // View Creation
@@ -107,23 +113,30 @@ public class AppBuilder {
     }
 
     /**
-     * Instantiates the LoggedInView and injects the DashboardViewModel for use in HomePanel.
+     * Instantiates the LoggedInView and wires up the Dashboard Use Case.
      * @param dashboardViewModel The ViewModel containing the 'due soon' tasks.
      * @return this AppBuilder instance.
      */
     public AppBuilder addLoggedInView(DashboardViewModel dashboardViewModel) {
         this.dashboardViewModel = dashboardViewModel;
 
-        // LoggedInView must now accept the DashboardViewModel in its constructor
-        this.loggedInView = new LoggedInView(loggedInViewModel, this.dashboardViewModel);
+        InMemoryTasksDataAccess tasksDataAccess = new InMemoryTasksDataAccess();
 
-        // Add the view to the CardPanel
+        DashboardOutputBoundary dashboardPresenter = new DashboardPresenter(dashboardViewModel);
+        DashboardInputBoundary dashboardInteractor = new DashboardInteractor(tasksDataAccess, dashboardPresenter);
+        DashboardController dashboardController = new DashboardController(dashboardInteractor);
+
+        this.loggedInView = new LoggedInView(
+                loggedInViewModel,
+                this.dashboardViewModel,
+                dashboardController,
+                tasksDataAccess
+        );
+
         cardPanel.add(loggedInView, loggedInView.getViewName());
 
         return this;
     }
-
-    // --- USE CASE BUILDERS ---
 
     public AppBuilder addSignupUseCase() {
         return this;
@@ -159,7 +172,6 @@ public class AppBuilder {
         return this;
     }
 
-    // --- MODIFIED BUILD METHOD ---
     public JFrame build() {
         final JFrame application = new JFrame("LockIn");
         application.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -170,7 +182,6 @@ public class AppBuilder {
 
         application.add(cardPanel);
 
-        // Set the initial view to Signup
         viewManagerModel.setState(signupView.getViewName());
         viewManagerModel.firePropertyChange();
 

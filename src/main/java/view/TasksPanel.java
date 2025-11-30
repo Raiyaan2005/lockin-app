@@ -2,6 +2,7 @@ package view;
 
 import dataaccess.InMemoryTasksDataAccess;
 import entity.Task;
+import interfaceadapter.dashboard.DashboardController;
 import interfaceadapter.dashboard.DashboardViewModel;
 
 import javax.swing.*;
@@ -23,12 +24,16 @@ public class TasksPanel extends JPanel {
     private List<Task> allTasks;
 
     private final DashboardViewModel dashboardViewModel;
+    private final DashboardController dashboardController; // 1. Added Controller Dependency
+
     public static interfaceadapter.sync_task.SyncTaskToCalendarController syncController;
 
     public TasksPanel(DashboardViewModel dashboardViewModel,
+                      DashboardController dashboardController, // 2. Inject Controller
                       InMemoryTasksDataAccess tasksDataAccess) {
 
         this.dashboardViewModel = dashboardViewModel;
+        this.dashboardController = dashboardController;
         this.tasksDataAccess = tasksDataAccess;
 
         // Shared task list
@@ -179,6 +184,9 @@ public class TasksPanel extends JPanel {
 
         // reload from repo so indices line up again
         refreshTable(true);
+
+        // 3. Update the Dashboard via Controller
+        dashboardController.execute();
     }
 
     private void openTaskPopup(Task taskToEdit) {
@@ -310,8 +318,8 @@ public class TasksPanel extends JPanel {
                 allTasks = tasksDataAccess.getAllTasks();
                 refreshTable(true);
 
-                // ⭐ IMPORTANT: Update dashboard due-soon list again
-                dashboardViewModel.updateDueSoonTasks(allTasks);
+                // 4. Update the Dashboard via Controller
+                dashboardController.execute();
 
                 popup.dispose();
 

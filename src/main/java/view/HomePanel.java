@@ -1,5 +1,6 @@
 package view;
 
+import interfaceadapter.dashboard.StopwatchController;
 import interfaceadapter.tasks.dto.TaskDTO;
 import interfaceadapter.dashboard.DashboardViewModel;
 
@@ -19,6 +20,8 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
     private final DashboardViewModel dashboardViewModel;
     private final List<JPanel> taskInfoPanels;
     private final JPanel infoContainerPanel;
+    private final StopwatchController stopwatchController;
+    private JLabel stopwatchLabel;
 
     private final Color BG_BLACK = Color.decode("#000000");
     private final Color PANEL_DARK = Color.decode("#020F28");
@@ -28,6 +31,7 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
     public HomePanel(DashboardViewModel dashboardViewModel) {
         this.dashboardViewModel = dashboardViewModel;
         this.dashboardViewModel.addPropertyChangeListener(this);
+        this.stopwatchController = new StopwatchController(dashboardViewModel);
 
         this.setLayout(new BorderLayout());
         this.setBackground(BG_BLACK);
@@ -137,15 +141,6 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
         panel.add(title, BorderLayout.NORTH);
         return panel;
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if ("dueSoonTasks".equals(evt.getPropertyName())) {
-            @SuppressWarnings("unchecked")
-            List<TaskDTO> tasks = (List<TaskDTO>) evt.getNewValue();
-            updateTaskPanels(tasks);
-        }
     }
 
     private void updateTaskPanels(List<TaskDTO> tasks) {
@@ -259,46 +254,52 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
     private JPanel createPlaceholderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(PANEL_DARK);
+        panel.setBackground(Color.decode("#020F28")); // Reusing your PANEL_DARK
 
         JLabel placeholderLabel = new JLabel("Stopwatch", SwingConstants.CENTER);
         placeholderLabel.setFont(new Font("Georgia", Font.BOLD, 20));
-        placeholderLabel.setForeground(TEXT_LIGHT);
+        placeholderLabel.setForeground(Color.decode("#E6E6E6")); // TEXT_LIGHT
         panel.add(placeholderLabel, BorderLayout.NORTH);
 
-        JLabel stopwatchLabel = new JLabel("00:00:00", SwingConstants.CENTER);
+        // Initialize the label field
+        stopwatchLabel = new JLabel("00:00:00", SwingConstants.CENTER);
         stopwatchLabel.setFont(new Font("Georgia", Font.BOLD, 24));
-        stopwatchLabel.setForeground(ACCENT_COLOR);
+        stopwatchLabel.setForeground(Color.decode("#007bff")); // ACCENT_COLOR
         panel.add(stopwatchLabel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(PANEL_DARK);
+        buttonPanel.setBackground(Color.decode("#020F28"));
         JButton startBtn = new JButton("Start");
         JButton stopBtn = new JButton("Stop");
         JButton resetBtn = new JButton("Reset");
+
+        // NO LOGIC HERE. Just delegate to Controller.
+        startBtn.addActionListener(e -> stopwatchController.start());
+        stopBtn.addActionListener(e -> stopwatchController.stop());
+        resetBtn.addActionListener(e -> stopwatchController.reset());
 
         buttonPanel.add(startBtn);
         buttonPanel.add(stopBtn);
         buttonPanel.add(resetBtn);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
-        final int[] elapsedSeconds = {0};
-        javax.swing.Timer stopwatchTimer = new javax.swing.Timer(1000, e -> {
-            elapsedSeconds[0]++;
-            int hours = elapsedSeconds[0] / 3600;
-            int minutes = (elapsedSeconds[0] % 3600) / 60;
-            int seconds = elapsedSeconds[0] % 60;
-            stopwatchLabel.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
-        });
-
-        startBtn.addActionListener(e -> stopwatchTimer.start());
-        stopBtn.addActionListener(e -> stopwatchTimer.stop());
-        resetBtn.addActionListener(e -> {
-            stopwatchTimer.stop();
-            elapsedSeconds[0] = 0;
-            stopwatchLabel.setText("00:00:00");
-        });
-
         return panel;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        // Handle Tasks
+        if ("dueSoonTasks".equals(evt.getPropertyName())) {
+            @SuppressWarnings("unchecked")
+            List<TaskDTO> tasks = (List<TaskDTO>) evt.getNewValue();
+            updateTaskPanels(tasks);
+        }
+        // Handle Stopwatch
+        else if ("stopwatchText".equals(evt.getPropertyName())) {
+            String timeText = (String) evt.getNewValue();
+            if (stopwatchLabel != null) {
+                stopwatchLabel.setText(timeText);
+            }
+        }
     }
 }

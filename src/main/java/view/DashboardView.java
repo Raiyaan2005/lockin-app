@@ -1,21 +1,22 @@
+
 package view;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseAdapter;
+
 import dataaccess.InMemoryTasksDataAccess;
+import dataaccess.QuoteApiClient;
+import entity.Quote;
 import interfaceadapter.dashboard.DashboardViewModel;
+import interfaceadapter.dashboard.DashboardController;
 import interfaceadapter.logged_in.ChangePasswordController;
 import interfaceadapter.logout.LogoutController;
 import interfaceadapter.tasks.TasksController;
 import interfaceadapter.tasks.TasksPresenter;
 import interfaceadapter.tasks.TasksViewModel;
 import usecase.tasks.TasksInteractor;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
-import data_access.QuoteApiClient;
-import entity.Quote;
 
 public class DashboardView extends JPanel {
 
@@ -36,6 +37,7 @@ public class DashboardView extends JPanel {
     private final CalendarPanel calendarPanel;
 
     private final DashboardViewModel dashboardViewModel;
+    private final DashboardController dashboardController; // <--- Add Field
 
     private ChangePasswordController changePasswordController = null;
     private LogoutController logoutController = null;
@@ -49,36 +51,37 @@ public class DashboardView extends JPanel {
     private final Color BUTTON_BASE = PANEL_DARK;
 
     /**
-     * Updated constructor to accept the DashboardViewModel.
-     *
-     * @param frame              The main application JFrame.
-     * @param dashboardViewModel The ViewModel containing 'due soon' task data.
+     * Updated constructor to accept Controller and DAO.
      */
+    public DashboardView(JFrame frame,
+                         DashboardViewModel dashboardViewModel,
+                         DashboardController dashboardController,
+                         InMemoryTasksDataAccess tasksDataAccess) {
 
-    public DashboardView(JFrame frame, DashboardViewModel dashboardViewModel) {
         this.frame = frame;
         this.dashboardViewModel = dashboardViewModel;
+        this.dashboardController = dashboardController;
+
         this.cardLayout = new CardLayout();
         this.cardPanel = new JPanel(cardLayout);
 
-        // ---------- CLEAN ARCHITECTURE WIRING FOR TASKS ----------
-        InMemoryTasksDataAccess tasksRepo = new InMemoryTasksDataAccess();
         TasksViewModel tasksViewModel = new TasksViewModel();
         TasksPresenter tasksPresenter = new TasksPresenter(tasksViewModel);
-        TasksInteractor interactor = new TasksInteractor(tasksRepo, tasksPresenter);
+        TasksInteractor interactor = new TasksInteractor(tasksDataAccess, tasksPresenter);
         this.tasksController = new TasksController(interactor);
 
-        // ---------- PANELS (keep your existing types) ----------
+        // ---------- PANELS ----------
         this.homePanel = new HomePanel(this.dashboardViewModel);
-        this.tasksPanel = new TasksPanel(this.dashboardViewModel, tasksRepo);
+
+        // Pass the Controller and the Shared DAO to TasksPanel
+        this.tasksPanel = new TasksPanel(this.dashboardViewModel, this.dashboardController, tasksDataAccess);
+
         this.calendarPanel = new CalendarPanel();
 
         this.mainHeaderLabel = new JLabel("LockIn Dashboard", SwingConstants.CENTER);
 
         initUI();
     }
-
-
 
     private void initUI() {
         setLayout(new BorderLayout(10, 10));
@@ -146,12 +149,15 @@ public class DashboardView extends JPanel {
 
                 switch (text) {
                     case HOME_CARD:
+                        // REFRESH DATA when user comes Home
+                        dashboardController.execute();
+
                         cardLayout.show(cardPanel, HOME_CARD);
                         mainHeaderLabel.setText("LockIn Dashboard");
                         break;
                     case TASK_MANAGER_CARD:
                         if (tasksController != null) {
-                            tasksController.loadTasks();   // ← this now calls TasksInteractor
+                            tasksController.loadTasks();
                         }
                         cardLayout.show(cardPanel, TASK_MANAGER_CARD);
                         mainHeaderLabel.setText(TASK_MANAGER_CARD);
@@ -164,7 +170,6 @@ public class DashboardView extends JPanel {
                         if (logoutController != null) {
                             logoutController.execute();
                         } else {
-                            // Reset selection if logout fails
                             currentSelectedButton.setBackground(BUTTON_BASE);
                             currentSelectedButton = null;
                             JOptionPane.showMessageDialog(
@@ -190,12 +195,17 @@ public class DashboardView extends JPanel {
         cardLayout.show(cardPanel, HOME_CARD);
         this.setBackground(BG_BLACK);
 
+        // Initial load of dashboard data
+        dashboardController.execute();
+
         // Load quote from external API and send it to the HomePanel
         loadQuoteAsync();
     }
 
     /**
      * Calls the external quotes API on a background thread and updates the HomePanel.
+     * Note: In strict CA, this network logic should also be in a Use Case/Interactor,
+     * but we will keep it here for now to avoid over-complicating the current refactor.
      */
     private void loadQuoteAsync() {
         new Thread(() -> {
@@ -208,18 +218,13 @@ public class DashboardView extends JPanel {
 
                 SwingUtilities.invokeLater(() -> homePanel.setQuoteText(html));
             } catch (Exception ex) {
-                ex.printStackTrace(); // so you can see why it failed in the run console
+                // ex.printStackTrace();
                 SwingUtilities.invokeLater(() ->
                         homePanel.setQuoteText("Could not load quote."));
             }
         }).start();
     }
 
-    /**
-     * Called by LoggedInView to update the welcome message on the Home Panel.
-     *
-     * @param username The username of the currently logged-in user.
-     */
     public void updateUsername(String username) {
         this.homePanel.setUsername(username);
     }
@@ -235,5 +240,4 @@ public class DashboardView extends JPanel {
     public void setTasksController(TasksController tasksController) {
         this.tasksController = tasksController;
     }
-
 }
