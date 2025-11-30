@@ -11,13 +11,7 @@ public class TasksController {
         this.interactor = interactor;
     }
 
-    /**
-     * Called when the user clicks the Tasks button.
-     */
-    public void loadTasksScreen() {
-        // No user-provided data yet, but we still follow InputData rules
-        TasksInputData inputData = new TasksInputData();
-
-        interactor.execute(inputData);
+    public void loadTasks() {
+        interactor.execute(new TasksInputData());
     }
 }

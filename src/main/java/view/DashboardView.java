@@ -1,8 +1,13 @@
 package view;
 
+import data_access.InMemoryTasksDataAccess;
 import interface_adapter.Dashboard.DashboardViewModel;
 import interface_adapter.logged_in.ChangePasswordController;
 import interface_adapter.logout.LogoutController;
+import interface_adapter.tasks.TasksController;
+import interface_adapter.tasks.TasksPresenter;
+import interface_adapter.tasks.TasksViewModel;
+import use_case.tasks.TasksInteractor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,6 +36,8 @@ public class DashboardView extends JPanel {
 
     private ChangePasswordController changePasswordController = null;
     private LogoutController logoutController = null;
+    private TasksController tasksController;
+
 
     private final Color BG_BLACK = Color.decode("#000000");
     private final Color PANEL_DARK = Color.decode("#020F28");
@@ -43,20 +50,31 @@ public class DashboardView extends JPanel {
      * @param frame The main application JFrame.
      * @param dashboardViewModel The ViewModel containing 'due soon' task data.
      */
+
     public DashboardView(JFrame frame, DashboardViewModel dashboardViewModel) {
         this.frame = frame;
         this.dashboardViewModel = dashboardViewModel;
         this.cardLayout = new CardLayout();
         this.cardPanel = new JPanel(cardLayout);
 
+        // ---------- CLEAN ARCHITECTURE WIRING FOR TASKS ----------
+        InMemoryTasksDataAccess tasksRepo = new InMemoryTasksDataAccess();
+        TasksViewModel tasksViewModel = new TasksViewModel();
+        TasksPresenter tasksPresenter = new TasksPresenter(tasksViewModel);
+        TasksInteractor interactor = new TasksInteractor(tasksRepo, tasksPresenter);
+        this.tasksController = new TasksController(interactor);
+
+        // ---------- PANELS (keep your existing types) ----------
         this.homePanel = new HomePanel(this.dashboardViewModel);
-        this.tasksPanel = new TasksPanel(this.dashboardViewModel);
+        this.tasksPanel = new TasksPanel(this.dashboardViewModel, tasksRepo);
         this.calendarPanel = new CalendarPanel();
 
         this.mainHeaderLabel = new JLabel("LockIn Dashboard", SwingConstants.CENTER);
 
         initUI();
     }
+
+
 
     private void initUI() {
         setLayout(new BorderLayout(10, 10));
@@ -127,6 +145,9 @@ public class DashboardView extends JPanel {
                         mainHeaderLabel.setText("LockIn Dashboard");
                         break;
                     case TASK_MANAGER_CARD:
+                        if (tasksController != null) {
+                            tasksController.loadTasks();   // ← this now calls TasksInteractor
+                        }
                         cardLayout.show(cardPanel, TASK_MANAGER_CARD);
                         mainHeaderLabel.setText(TASK_MANAGER_CARD);
                         break;
@@ -181,4 +202,9 @@ public class DashboardView extends JPanel {
     public void setLogoutController(LogoutController logoutController) {
         this.logoutController = logoutController;
     }
+
+    public void setTasksController(TasksController tasksController) {
+        this.tasksController = tasksController;
+    }
+
 }

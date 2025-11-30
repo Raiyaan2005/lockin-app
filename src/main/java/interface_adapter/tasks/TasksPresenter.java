@@ -12,13 +12,12 @@ public class TasksPresenter implements TasksOutputBoundary {
     }
 
     @Override
-    public void prepareSuccessView(TasksOutputData outputData) {
-        // Instead of firePropertyChange, just set courses
-        viewModel.setCourses(outputData.getCourses());
+    public void prepareSuccessView(TasksOutputData response) {
+        viewModel.setTasks(response.getTasks());
     }
 
     @Override
-    public void prepareFailView(String errorMessage) {
-        viewModel.setError(errorMessage);
+    public void prepareFailView(String error) {
+        viewModel.setError(error);
     }
 }
