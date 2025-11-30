@@ -13,7 +13,16 @@ public class Event {
         this.date = date;
         this.color = color;
     }
-    public String getName() { return name; }
-    public LocalDate getDate() { return date; }
-    public Color getColor() { return color; }
+
+    public String getName() {
+        return name;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public Color getColor() {
+        return color;
+    }
 }
