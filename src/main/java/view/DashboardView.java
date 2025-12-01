@@ -37,7 +37,7 @@ public class DashboardView extends JPanel {
     private final CalendarPanel calendarPanel;
 
     private final DashboardViewModel dashboardViewModel;
-    private final DashboardController dashboardController; // <--- Add Field
+    private final DashboardController dashboardController;
 
     private ChangePasswordController changePasswordController = null;
     private LogoutController logoutController = null;
@@ -73,7 +73,6 @@ public class DashboardView extends JPanel {
         // ---------- PANELS ----------
         this.homePanel = new HomePanel(this.dashboardViewModel);
 
-        // Pass the Controller and the Shared DAO to TasksPanel
         this.tasksPanel = new TasksPanel(this.dashboardViewModel, this.dashboardController, tasksDataAccess);
 
         this.calendarPanel = new CalendarPanel();
@@ -195,10 +194,8 @@ public class DashboardView extends JPanel {
         cardLayout.show(cardPanel, HOME_CARD);
         this.setBackground(BG_BLACK);
 
-        // Initial load of dashboard data
         dashboardController.execute();
 
-        // Load quote from external API and send it to the HomePanel
         loadQuoteAsync();
     }
 
