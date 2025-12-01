@@ -4,7 +4,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
 
-import entity.Task;
 import interfaceadapter.tasks.dto.TaskDTO;
 
 public class DashboardViewModel {

@@ -288,13 +288,11 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        // Handle Tasks
         if ("dueSoonTasks".equals(evt.getPropertyName())) {
             @SuppressWarnings("unchecked")
             List<TaskDTO> tasks = (List<TaskDTO>) evt.getNewValue();
             updateTaskPanels(tasks);
         }
-        // Handle Stopwatch
         else if ("stopwatchText".equals(evt.getPropertyName())) {
             String timeText = (String) evt.getNewValue();
             if (stopwatchLabel != null) {

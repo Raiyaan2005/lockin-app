@@ -18,7 +18,6 @@ public class DashboardInteractor implements DashboardInputBoundary {
     public void execute() {
         List<Task> allTasks = dashboardDataAccessObject.getAllTasks();
 
-        // BUSINESS LOGIC: Filter for incomplete, sort by date, take top 3
         List<Task> sorted = allTasks.stream()
                 .filter(t -> !t.isCompleted() && t.getDate() != null)
                 .sorted((a, b) -> a.getDate().compareTo(b.getDate()))

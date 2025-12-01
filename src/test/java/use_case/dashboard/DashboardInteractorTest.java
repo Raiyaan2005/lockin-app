@@ -1,4 +1,4 @@
-package use_case.Dashboard;
+package use_case.dashboard;
 
 import entity.Task;
 import org.junit.jupiter.api.Test;
