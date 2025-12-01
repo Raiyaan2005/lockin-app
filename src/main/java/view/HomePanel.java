@@ -1,8 +1,10 @@
 package view;
 
+import interfaceadapter.dashboard.DashboardViewModel;
 import interfaceadapter.dashboard.StopwatchController;
 import interfaceadapter.tasks.dto.TaskDTO;
-import interfaceadapter.dashboard.DashboardViewModel;
+import interfaceadapter.quote.QuoteController;
+import interfaceadapter.quote.QuoteViewModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,8 +20,12 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
     private final JLabel quoteLabel;
     private final JPanel mainContentPanel;
     private final DashboardViewModel dashboardViewModel;
+    private final QuoteViewModel quoteViewModel;
+    private final QuoteController quoteController;
+
     private final List<JPanel> taskInfoPanels;
     private final JPanel infoContainerPanel;
+
     private final StopwatchController stopwatchController;
     private JLabel stopwatchLabel;
 
@@ -28,9 +34,16 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
     private final Color TEXT_LIGHT = Color.decode("#E6E6E6");
     private final Color ACCENT_COLOR = Color.decode("#007bff");
 
-    public HomePanel(DashboardViewModel dashboardViewModel) {
+    public HomePanel(DashboardViewModel dashboardViewModel,
+                     QuoteViewModel quoteViewModel,
+                     QuoteController quoteController) {
         this.dashboardViewModel = dashboardViewModel;
+        this.quoteViewModel = quoteViewModel;
+        this.quoteController = quoteController;
+
         this.dashboardViewModel.addPropertyChangeListener(this);
+        this.quoteViewModel.addPropertyChangeListener(this);
+
         this.stopwatchController = new StopwatchController(dashboardViewModel);
 
         this.setLayout(new BorderLayout());
@@ -47,11 +60,20 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
         welcomeLabel.setForeground(TEXT_LIGHT);
 
         quoteLabel = new JLabel("", SwingConstants.RIGHT);
-        quoteLabel.setFont(new Font("Georgia", Font.ITALIC, 20));
+        quoteLabel.setFont(new Font("Georgia", Font.ITALIC, 18));
         quoteLabel.setForeground(TEXT_LIGHT);
 
+        JButton refreshQuoteButton = new JButton("New quote");
+        refreshQuoteButton.setFont(new Font("Georgia", Font.PLAIN, 14));
+        refreshQuoteButton.addActionListener(e -> quoteController.loadQuote());
+
+        JPanel rightBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightBox.setOpaque(false);
+        rightBox.add(quoteLabel);
+        rightBox.add(refreshQuoteButton);
+
         welcomePanel.add(welcomeLabel, BorderLayout.CENTER);
-        welcomePanel.add(quoteLabel, BorderLayout.EAST);
+        welcomePanel.add(rightBox, BorderLayout.EAST);
 
         mainContentPanel = new JPanel(new GridLayout(2, 1, 0, 0));
         mainContentPanel.setBackground(BG_BLACK);
@@ -245,7 +267,7 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
     }
 
     /**
-     * Called by DashboardView when the quote API returns.
+     * Called when the ViewModel reports a quote change.
      * Accepts HTML so we can format the text nicely.
      */
     public void setQuoteText(String text) {
@@ -254,14 +276,13 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
     private JPanel createPlaceholderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.decode("#020F28")); // Reusing your PANEL_DARK
+        panel.setBackground(Color.decode("#020F28")); // PANEL_DARK
 
         JLabel placeholderLabel = new JLabel("Stopwatch", SwingConstants.CENTER);
         placeholderLabel.setFont(new Font("Georgia", Font.BOLD, 20));
         placeholderLabel.setForeground(Color.decode("#E6E6E6")); // TEXT_LIGHT
         panel.add(placeholderLabel, BorderLayout.NORTH);
 
-        // Initialize the label field
         stopwatchLabel = new JLabel("00:00:00", SwingConstants.CENTER);
         stopwatchLabel.setFont(new Font("Georgia", Font.BOLD, 24));
         stopwatchLabel.setForeground(Color.decode("#007bff")); // ACCENT_COLOR
@@ -273,7 +294,6 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
         JButton stopBtn = new JButton("Stop");
         JButton resetBtn = new JButton("Reset");
 
-        // NO LOGIC HERE. Just delegate to Controller.
         startBtn.addActionListener(e -> stopwatchController.start());
         stopBtn.addActionListener(e -> stopwatchController.stop());
         resetBtn.addActionListener(e -> stopwatchController.reset());
@@ -298,6 +318,10 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
             if (stopwatchLabel != null) {
                 stopwatchLabel.setText(timeText);
             }
+        }
+        else if (QuoteViewModel.QUOTE_TEXT.equals(evt.getPropertyName())) {
+            String quoteHtml = (String) evt.getNewValue();
+            setQuoteText(quoteHtml);
         }
     }
 }

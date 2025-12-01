@@ -1,22 +1,30 @@
-
 package view;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import dataaccess.InMemoryTasksDataAccess;
 import dataaccess.QuoteApiClient;
-import entity.Quote;
-import interfaceadapter.dashboard.DashboardViewModel;
+
 import interfaceadapter.dashboard.DashboardController;
+import interfaceadapter.dashboard.DashboardViewModel;
 import interfaceadapter.logged_in.ChangePasswordController;
 import interfaceadapter.logout.LogoutController;
 import interfaceadapter.tasks.TasksController;
 import interfaceadapter.tasks.TasksPresenter;
 import interfaceadapter.tasks.TasksViewModel;
+
+import interfaceadapter.quote.QuoteController;
+import interfaceadapter.quote.QuotePresenter;
+import interfaceadapter.quote.QuoteViewModel;
+
 import usecase.tasks.TasksInteractor;
+import usecase.quote.QuoteGateway;
+import usecase.quote.QuoteInputBoundary;
+import usecase.quote.QuoteInteractor;
+import usecase.quote.QuoteOutputBoundary;
 
 public class DashboardView extends JPanel {
 
@@ -39,10 +47,12 @@ public class DashboardView extends JPanel {
     private final DashboardViewModel dashboardViewModel;
     private final DashboardController dashboardController;
 
+    private final QuoteViewModel quoteViewModel;
+    private final QuoteController quoteController;
+
     private ChangePasswordController changePasswordController = null;
     private LogoutController logoutController = null;
     private TasksController tasksController;
-
 
     private final Color BG_BLACK = Color.decode("#000000");
     private final Color PANEL_DARK = Color.decode("#020F28");
@@ -65,16 +75,22 @@ public class DashboardView extends JPanel {
         this.cardLayout = new CardLayout();
         this.cardPanel = new JPanel(cardLayout);
 
+        // ---------- TASKS USE CASE WIRING ----------
         TasksViewModel tasksViewModel = new TasksViewModel();
         TasksPresenter tasksPresenter = new TasksPresenter(tasksViewModel);
-        TasksInteractor interactor = new TasksInteractor(tasksDataAccess, tasksPresenter);
-        this.tasksController = new TasksController(interactor);
+        TasksInteractor tasksInteractor = new TasksInteractor(tasksDataAccess, tasksPresenter);
+        this.tasksController = new TasksController(tasksInteractor);
+
+        // ---------- QUOTE USE CASE WIRING ----------
+        this.quoteViewModel = new QuoteViewModel();
+        QuoteGateway quoteGateway = new QuoteApiClient();
+        QuoteOutputBoundary quotePresenter = new QuotePresenter(quoteViewModel);
+        QuoteInputBoundary quoteInteractor = new QuoteInteractor(quoteGateway, quotePresenter);
+        this.quoteController = new QuoteController(quoteInteractor);
 
         // ---------- PANELS ----------
-        this.homePanel = new HomePanel(this.dashboardViewModel);
-
+        this.homePanel = new HomePanel(this.dashboardViewModel, this.quoteViewModel, this.quoteController);
         this.tasksPanel = new TasksPanel(this.dashboardViewModel, this.dashboardController, tasksDataAccess);
-
         this.calendarPanel = new CalendarPanel();
 
         this.mainHeaderLabel = new JLabel("LockIn Dashboard", SwingConstants.CENTER);
@@ -148,9 +164,8 @@ public class DashboardView extends JPanel {
 
                 switch (text) {
                     case HOME_CARD:
-                        // REFRESH DATA when user comes Home
+                        // Refresh dashboard aggregates when user comes Home
                         dashboardController.execute();
-
                         cardLayout.show(cardPanel, HOME_CARD);
                         mainHeaderLabel.setText("LockIn Dashboard");
                         break;
@@ -194,32 +209,11 @@ public class DashboardView extends JPanel {
         cardLayout.show(cardPanel, HOME_CARD);
         this.setBackground(BG_BLACK);
 
+        // Initial data load
         dashboardController.execute();
 
-        loadQuoteAsync();
-    }
-
-    /**
-     * Calls the external quotes API on a background thread and updates the HomePanel.
-     * Note: In strict CA, this network logic should also be in a Use Case/Interactor,
-     * but we will keep it here for now to avoid over-complicating the current refactor.
-     */
-    private void loadQuoteAsync() {
-        new Thread(() -> {
-            QuoteApiClient client = new QuoteApiClient();
-            try {
-                Quote q = client.fetchRandomQuote();
-                String html = "<html><div style='text-align:right;'>" +
-                        "<i>\"" + q.getContent() + "\"</i><br/>— " + q.getAuthor() +
-                        "</div></html>";
-
-                SwingUtilities.invokeLater(() -> homePanel.setQuoteText(html));
-            } catch (Exception ex) {
-                // ex.printStackTrace();
-                SwingUtilities.invokeLater(() ->
-                        homePanel.setQuoteText("Could not load quote."));
-            }
-        }).start();
+        // Initial quote load via use case
+        quoteController.loadQuote();
     }
 
     public void updateUsername(String username) {

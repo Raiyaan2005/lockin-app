@@ -1,6 +1,11 @@
 package dataaccess;
 
-import java.io.IOException;
+import entity.Quote;
+import usecase.quote.QuoteGateway;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -8,15 +13,9 @@ import java.net.http.HttpResponse;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+public class QuoteApiClient implements QuoteGateway {
 
-import entity.Quote;
-
-public class QuoteApiClient {
-
-    // Only quotes tagged with inspirational, success, or education
+    // Inspirational / success / education quotes, pipes URL-encoded
     private static final String QUOTE_URL =
             "https://api.quotable.io/random?tags=inspirational%7Csuccess%7Ceducation";
 
@@ -26,13 +25,10 @@ public class QuoteApiClient {
         this.client = createInsecureClient();
     }
 
-    /**
-     * Creates an HttpClient that trusts all SSL certificates.
-     * Not for production, but fine for this course project demo.
-     */
+    /** Trust-all SSL client (fine for this course project, not for production). */
     private HttpClient createInsecureClient() {
         try {
-            TrustManager[] trustAllCerts = new TrustManager[] {
+            TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         @Override
                         public void checkClientTrusted(X509Certificate[] chain, String authType) { }
@@ -59,24 +55,30 @@ public class QuoteApiClient {
         }
     }
 
-    public Quote fetchRandomQuote() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(QUOTE_URL))
-                .GET()
-                .build();
+    @Override
+    public Quote fetchRandomQuote() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(QUOTE_URL))
+                    .GET()
+                    .build();
 
-        HttpResponse<String> response =
-                client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response =
+                    client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        String body = response.body();
+            String body = response.body();
 
-        String content = extractField(body, "content");
-        String author = extractField(body, "author");
+            String content = extractField(body, "content");
+            String author = extractField(body, "author");
 
-        return new Quote(content, author);
+            return new Quote(content, author);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch quote", e);
+        }
     }
 
-    // Very simple helper: looks for "field":"value"
+    // Tiny helper: looks for "field":"value"
     private String extractField(String json, String field) {
         String key = "\"" + field + "\":\"";
         int start = json.indexOf(key);
