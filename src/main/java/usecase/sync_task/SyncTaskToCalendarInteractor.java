@@ -20,22 +20,10 @@ public class SyncTaskToCalendarInteractor implements SyncTaskToCalendarInputBoun
     public void sync(Task task) {
         String name = task.getTitle();
         java.time.LocalDate date = task.getDate();
-        Color color = chooseColor(task.getType());
+        Color color = Color.BLUE;
 
         calendarController.addEvent(name, date, color);
 
         presenter.present();
-    }
-
-    private Color chooseColor(String type) {
-        if (type == null) return Color.GRAY;
-
-        switch (type.toLowerCase()) {
-            case "assignment": return Color.BLUE;
-            case "test": return Color.RED;
-            case "event": return Color.BLACK;
-            case "reminder": return Color.ORANGE;
-            default: return Color.GRAY;
-        }
     }
 }
