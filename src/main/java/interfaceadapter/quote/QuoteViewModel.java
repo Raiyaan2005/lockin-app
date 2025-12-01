@@ -5,6 +5,7 @@ import java.beans.PropertyChangeSupport;
 
 /**
  * View model for the quote feature.
+ *
  * <p>
  * Holds the HTML for the currently displayed quote and notifies any
  * listeners when the quote text changes.
