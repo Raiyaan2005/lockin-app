@@ -67,14 +67,6 @@ public class Task {
         this.course = course;
     }
 
-    public void markCompleted() {
-        this.completed = true;
-    }
-
-    public void markIncomplete() {
-        this.completed = false;
-    }
-
     public String getType() {
         return type;
     }
