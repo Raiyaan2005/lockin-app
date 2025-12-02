@@ -5,8 +5,7 @@ Please keep this up-to-date with information about your project throughout the t
 The readme should include information such as:
 - a summary of what your application is all about
 - a list of the user stories, along with who is responsible for each one
-- information about the API(s) that your project uses 
-- screenshots or animations demonstrating current functionality
+- information about the API(s) that your project uses
 
 By keeping this README up-to-date,
 your team will find it easier to prepare for the final presentation
@@ -35,6 +34,9 @@ CALENDAR
 LOGIN/LOGOUT
 - (ZEN) As a user, I want to be able to sign up, and login/out of the application.
 - (ZEN) As a user, I want my todo lists and calendar to be saved when I logout of the application, so I don't lose track of my schedule.
+
+[Screen Recording 2025-12-01 at 10.20.55 AM.mov](../../Desktop/csc207/Screen%20Recording%202025-12-01%20at%2010.20.55%E2%80%AFAM.mov)
+
 
 API's
 (MUHAMMAD) We use the API: https://api.quotable.io/random?tags=inspirational%7Csuccess%7Ceducation. This gives a new motivational
