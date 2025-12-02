@@ -147,7 +147,7 @@ public class TasksPanel extends JPanel {
             }
         });
 
-        // First load
+
         refreshTable(true);
     }
 

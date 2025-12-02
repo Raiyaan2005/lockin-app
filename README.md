@@ -7,6 +7,7 @@ The readme should include information such as:
 - a list of the user stories, along with who is responsible for each one
 - information about the API(s) that your project uses
 
+
 By keeping this README up-to-date,
 your team will find it easier to prepare for the final presentation
 at the end of the term.
