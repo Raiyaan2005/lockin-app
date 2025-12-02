@@ -39,7 +39,7 @@ public class TasksPanel extends JPanel {
         // Shared task list
         this.allTasks = tasksDataAccess.getAllTasks();
 
-        // -------- Colours --------
+        // Colours
         Color panelDark = Color.decode("#020F28");
         Color tableBackground = Color.decode("#001F3F");
         Color textLight = Color.decode("#E6E6E6");
@@ -48,14 +48,14 @@ public class TasksPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(panelDark);
 
-        // -------- Title --------
+        // Titles
         JLabel title = new JLabel("Task Manager", SwingConstants.CENTER);
         title.setFont(new Font("Georgia", Font.BOLD, 28));
         title.setForeground(textLight);
         title.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(title, BorderLayout.NORTH);
 
-        // -------- Table --------
+        // Table
         String[] columnNames = {"Task", "Course", "Due Date", "Status"};
 
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -84,7 +84,7 @@ public class TasksPanel extends JPanel {
         scrollPane.setBorder(null);
         add(scrollPane, BorderLayout.CENTER);
 
-        // -------- Buttons bottom row --------
+        // Add, delete, and sort buttons
         addTaskBtn = new JButton("Add Task");
         addTaskBtn.setFont(new Font("Georgia", Font.BOLD, 16));
         addTaskBtn.setForeground(buttonBlue);
@@ -113,7 +113,7 @@ public class TasksPanel extends JPanel {
         btnWrapper.add(sortByCourseBtn);
         add(btnWrapper, BorderLayout.SOUTH);
 
-        // -------- Actions --------
+        // Actions
 
         // Add new task
         addTaskBtn.addActionListener(e -> openTaskPopup(null));
@@ -147,14 +147,10 @@ public class TasksPanel extends JPanel {
             }
         });
 
-        // First load
+
         refreshTable(true);
     }
 
-    /**
-     * Redraws the table. If reloadFromRepo = true,
-     * we pull tasks again from the shared InMemoryTasksDataAccess.
-     */
     private void refreshTable(boolean reloadFromRepo) {
         tableModel.setRowCount(0);
 
@@ -180,12 +176,11 @@ public class TasksPanel extends JPanel {
         }
 
         Task task = allTasks.get(selectedRow);
-        tasksDataAccess.removeTask(task);  // only removes from our task repo
+        tasksDataAccess.removeTask(task);
 
-        // reload from repo so indices line up again
+
         refreshTable(true);
 
-        // 3. Update the Dashboard via Controller
         dashboardController.execute();
     }
 
@@ -318,7 +313,7 @@ public class TasksPanel extends JPanel {
                 allTasks = tasksDataAccess.getAllTasks();
                 refreshTable(true);
 
-                // 4. Update the Dashboard via Controller
+
                 dashboardController.execute();
 
                 popup.dispose();

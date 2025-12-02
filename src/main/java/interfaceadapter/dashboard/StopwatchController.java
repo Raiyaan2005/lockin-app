@@ -13,7 +13,6 @@ public class StopwatchController {
     public StopwatchController(DashboardViewModel viewModel) {
         this.viewModel = viewModel;
 
-        // Initialize logic here, not in the View
         this.timer = new Timer(1000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -45,7 +44,6 @@ public class StopwatchController {
         updateViewModel();
     }
 
-    // This is the formatting logic (moved out of View)
     private void updateViewModel() {
         int hours = elapsedSeconds / 3600;
         int minutes = (elapsedSeconds % 3600) / 60;
@@ -53,7 +51,6 @@ public class StopwatchController {
 
         String formatted = String.format("%02d:%02d:%02d", hours, minutes, seconds);
 
-        // Push state to ViewModel
         viewModel.setStopwatchText(formatted);
     }
 }

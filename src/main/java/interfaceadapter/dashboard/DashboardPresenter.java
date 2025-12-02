@@ -16,7 +16,6 @@ public class DashboardPresenter implements DashboardOutputBoundary {
 
     @Override
     public void prepareSuccessView(DashboardOutputData response) {
-        // PRESENTATION LOGIC: Convert Entities to DTOs
         List<TaskDTO> dtos = response.getTasks().stream()
                 .map(t -> new TaskDTO(
                         t.getTitle(),
