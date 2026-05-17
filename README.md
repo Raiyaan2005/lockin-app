@@ -1,44 +1,112 @@
-# Team Project
+# LockIn
 
-Please keep this up-to-date with information about your project throughout the term.
+A desktop productivity app for students built with Java Swing, following Clean Architecture principles.
 
-The readme should include information such as:
-- a summary of what your application is all about
-- a list of the user stories, along with who is responsible for each one
-- information about the API(s) that your project uses
+---
 
+## Features
 
-By keeping this README up-to-date,
-your team will find it easier to prepare for the final presentation
-at the end of the term.
+### Authentication
+- Sign up with a username and password
+- Log in / log out with persistent user sessions
+- Change password from the dashboard
+- Delete account — permanently removes your account and all associated tasks
 
-Our homepage displays the top three tasks that are due soon along with their upcoming due dates, as well as a stopwatch
-feature to help the student time their tasks so they can complete them more efficiently.
+### Home Dashboard
+- "Due Soon" panel showing your three most upcoming tasks at a glance
+- Built-in stopwatch (Start / Stop / Reset)
+- Rotating inspirational quotes powered by the [DummyJSON Quotes API](https://dummyjson.com/quotes)
 
-There is a bar on the side of the homepage that will bring you to various pages and features of our program: Calendar, and Task Manager
+### Task Manager
+- Add, edit, and delete tasks with a title, course, description, due date, and completion status
+- Sort tasks by due date or course (click the active sort button again to restore the original order)
+- Tasks persist across sessions via a local CSV file
 
-HOME PAGE
-- (RAIYAAN) As a user, I want to be able to see what tasks I have due soon on the home page, so I know what to prioritize whenever I open the application.
-- (RAIYAAN) As a user, I want to be taken back to the homepage whenever I select the Home button.
-- (RAIYAAN) As a user, I want to have a built-in stopwatch to time my studies.
+### Calendar
+- Visual monthly calendar view
+- Tasks are automatically synced to the calendar on login
+- Add events manually and mark tasks as completed
 
-TASK MANAGER
-- (ELLA) As a user, when I select Task Manager I want to see all of my tasks laid out so I can see how much needs to be done.
-- (ELLA) As a user, I want to be able to add all of my assignments, tests, and reminders to the task manager with information like a due date and  description so I can stay organized.
-- (ELLA) As a user, I want to be able to add, edit, and remove tasks from my todo lists, so I can adjust my lists if needed.
-- (ELLA) As a user, I want to be able to sort the tasks on my todolist by course, assignment type, and due date so I can categorize and prioritize what I need to work on.
+---
 
-CALENDAR
-- (ANGEL) As a user, I want to be able to add assignments and other events to my calendar so I can visually see what needs to be done.
-- (ANGEL) As a user, I want the assignments added to my task manager to be showed on my calendar.
+## Architecture
 
-LOGIN/LOGOUT
-- (ZEN) As a user, I want to be able to sign up, and login/out of the application.
-- (ZEN) As a user, I want my todo lists and calendar to be saved when I logout of the application, so I don't lose track of my schedule.
+The project follows **Clean Architecture**, separating concerns across four layers:
 
-[Screen Recording 2025-12-01 at 10.20.55 AM.mov](../../Desktop/csc207/Screen%20Recording%202025-12-01%20at%2010.20.55%E2%80%AFAM.mov)
+```
+app/                    Entry point and dependency wiring (AppBuilder, Main)
+entity/                 Core domain objects (User, Task, Event, Quote)
+usecase/                Business logic — interactors and input/output boundaries
+interfaceadapter/       Controllers, presenters, view models
+dataaccess/             File-based and in-memory data access objects
+view/                   Java Swing UI panels and views
+```
 
+Each use case is fully decoupled — the UI layer never touches the data layer directly.
 
-API's
-(MUHAMMAD) We use the API: https://api.quotable.io/random?tags=inspirational%7Csuccess%7Ceducation. This gives a new motivational
-quote every time the app is refreshed.
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| UI | Java Swing |
+| Build | Maven |
+| Persistence | CSV files (`users.csv`, `tasks.csv`) |
+| Quotes API | [DummyJSON](https://dummyjson.com/quotes/random) |
+| Password hashing | jBCrypt |
+| JSON parsing | org.json |
+| HTTP client | OkHttp3 |
+| Testing | JUnit 5 |
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Java 17+
+- Maven
+
+### Run
+
+```bash
+git clone https://github.com/Raiyaan2005/lockin-app.git
+cd lockin-app
+mvn compile exec:java -Dexec.mainClass="app.Main"
+```
+
+Or open the project in IntelliJ IDEA and run `app.Main`.
+
+### Build
+
+```bash
+mvn package
+```
+
+---
+
+## User Stories
+
+**Home Page** *(Raiyaan)*
+- As a user, I want to see my three most due-soon tasks on the home page so I know what to prioritize.
+- As a user, I want a built-in stopwatch to time my study sessions.
+
+**Task Manager** *(Ella)*
+- As a user, I want to see all my tasks in one place so I can understand my workload.
+- As a user, I want to add tasks with a due date, course, and description so I can stay organised.
+- As a user, I want to add, edit, and remove tasks so I can keep my list up to date.
+- As a user, I want to sort tasks by course or due date so I can prioritise my work.
+
+**Calendar** *(Angel)*
+- As a user, I want to view my tasks on a monthly calendar so I can see upcoming deadlines visually.
+- As a user, I want tasks added in the Task Manager to appear on the calendar automatically.
+
+**Login / Logout** *(Zen)*
+- As a user, I want to sign up and log in/out so my data is private to me.
+- As a user, I want my tasks and calendar to be saved between sessions so I don't lose my schedule.
+
+---
+
+## Data Storage
+
+User credentials are stored in `users.csv` and tasks in `tasks.csv` in the working directory. Both files are created automatically on first run.
