@@ -10,22 +10,19 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-/**
- * The View for when the user is logging into the program.
- */
 public class LoginView extends JPanel implements ActionListener, PropertyChangeListener {
 
     private final String viewName = "log in";
     private final LoginViewModel loginViewModel;
 
-    private final JTextField usernameInputField = new JTextField(15);
-    private final JLabel usernameErrorField = new JLabel();
-
-    private final JPasswordField passwordInputField = new JPasswordField(15);
-    private final JLabel passwordErrorField = new JLabel();
+    private final JTextField usernameInputField = new JTextField(20);
+    private final JLabel usernameErrorField = new JLabel(" ");
+    private final JPasswordField passwordInputField = new JPasswordField(20);
 
     private final JButton logIn;
     private final JButton cancel;
@@ -33,154 +30,193 @@ public class LoginView extends JPanel implements ActionListener, PropertyChangeL
 
     private LoginController loginController = null;
 
-    public LoginView(LoginViewModel loginViewModel) {
+    private static final Color BG        = new Color(0xFAF8F5);
+    private static final Color SURFACE   = new Color(0xFFFFFF);
+    private static final Color FIELD     = new Color(0xFAF8F5);
+    private static final Color ACCENT    = new Color(0x3B82F6);
+    private static final Color ACCENT_HI = new Color(0x2563EB);
+    private static final Color TEXT      = new Color(0x1C1917);
+    private static final Color MUTED     = new Color(0x78716C);
+    private static final Color DANGER    = new Color(0xDC2626);
+    private static final Color BORDER    = new Color(0xE2D9D0);
 
+    public LoginView(LoginViewModel loginViewModel) {
         this.loginViewModel = loginViewModel;
         this.loginViewModel.addPropertyChangeListener(this);
 
-        final JLabel title = new JLabel("Login Screen");
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        setLayout(new GridBagLayout());
+        setBackground(BG);
 
-        final LabelTextPanel usernameInfo = new LabelTextPanel(
-                new JLabel("Username"), usernameInputField);
-        final LabelTextPanel passwordInfo = new LabelTextPanel(
-                new JLabel("Password"), passwordInputField);
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(SURFACE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER, 1),
+                BorderFactory.createEmptyBorder(44, 52, 44, 52)));
+        card.setPreferredSize(new Dimension(420, 530));
 
-        final JPanel buttons = new JPanel();
+        JLabel appName = new JLabel("LockIn");
+        appName.setFont(new Font("Copperplate", Font.BOLD, 46));
+        appName.setForeground(ACCENT);
+        appName.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        logIn = new JButton("log in");
-        buttons.add(logIn);
+        JLabel sub = new JLabel("Sign in to continue");
+        sub.setFont(new Font("Helvetica Neue",Font.PLAIN, 17));
+        sub.setForeground(MUTED);
+        sub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        toSignup = new JButton("Go to Sign up");
-        buttons.add(toSignup);
+        JLabel usernameLabel = new JLabel("Username");
+        usernameLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 15));
+        usernameLabel.setForeground(MUTED);
+        usernameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        usernameLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        styleField(usernameInputField);
 
-        cancel = new JButton("cancel");
-        buttons.add(cancel);
+        usernameErrorField.setFont(new Font("Helvetica Neue",Font.PLAIN, 14));
+        usernameErrorField.setForeground(DANGER);
+        usernameErrorField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        usernameErrorField.setHorizontalAlignment(SwingConstants.CENTER);
 
+        JLabel passwordLabel = new JLabel("Password");
+        passwordLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 15));
+        passwordLabel.setForeground(MUTED);
+        passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        passwordLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        styleField(passwordInputField);
 
-        // --- LOGIN BUTTON ---
-        logIn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                if (evt.getSource().equals(logIn)) {
-                    final LoginState currentState = loginViewModel.getState();
+        logIn = new JButton("Log In");
+        styleAccentButton(logIn);
 
-                    loginController.execute(
-                            currentState.getUsername(),
-                            currentState.getPassword()
-                    );
-                }
-            }
-        });
+        toSignup = new JButton("Create an account →");
+        styleGhostButton(toSignup, MUTED);
 
-        // --- CANCEL BUTTON ---
-        cancel.addActionListener(this);
+        cancel = new JButton("Exit");
+        styleGhostButton(cancel, new Color(0x6B7280));
 
-        // --- TOSIGNUP BUTTON ---
-        toSignup.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loginController.switchToSignupView();
-            }
-        });
+        card.add(appName);
+        card.add(Box.createVerticalStrut(6));
+        card.add(sub);
+        card.add(Box.createVerticalStrut(32));
+        card.add(usernameLabel);
+        card.add(Box.createVerticalStrut(6));
+        card.add(usernameInputField);
+        card.add(Box.createVerticalStrut(4));
+        card.add(usernameErrorField);
+        card.add(Box.createVerticalStrut(16));
+        card.add(passwordLabel);
+        card.add(Box.createVerticalStrut(6));
+        card.add(passwordInputField);
+        card.add(Box.createVerticalStrut(28));
+        card.add(logIn);
+        card.add(Box.createVerticalStrut(12));
+        card.add(toSignup);
+        card.add(Box.createVerticalStrut(4));
+        card.add(cancel);
 
+        add(card);
 
-        // Username field updates LoginState.username
-        usernameInputField.getDocument().addDocumentListener(new DocumentListener() {
-
-            private void documentListenerHelper() {
-                final LoginState currentState = loginViewModel.getState();
-                currentState.setUsername(usernameInputField.getText());
-                loginViewModel.setState(currentState);
-            }
-
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                documentListenerHelper();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                documentListenerHelper();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                documentListenerHelper();
-            }
-        });
-
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-        // Password field updates LoginState.password
-        passwordInputField.getDocument().addDocumentListener(new DocumentListener() {
-
-            private void documentListenerHelper() {
-                final LoginState currentState = loginViewModel.getState();
-                currentState.setPassword(new String(passwordInputField.getPassword()));
-                loginViewModel.setState(currentState);
-            }
-
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                documentListenerHelper();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                documentListenerHelper();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                documentListenerHelper();
-            }
-        });
-
-        this.add(title);
-        this.add(usernameInfo);
-        this.add(usernameErrorField);
-        this.add(passwordInfo);
-        this.add(buttons);
+        wireListeners();
     }
 
-    /**
-     * React to a button click that results in evt.
-     * Currently only the Cancel button is wired to this listener.
-     */
+    private void styleField(JTextField field) {
+        field.setBackground(FIELD);
+        field.setForeground(TEXT);
+        field.setCaretColor(TEXT);
+        field.setFont(new Font("Helvetica Neue",Font.PLAIN, 17));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER, 1),
+                BorderFactory.createEmptyBorder(10, 14, 10, 14)));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        field.setAlignmentX(Component.CENTER_ALIGNMENT);
+    }
+
+    private void styleAccentButton(JButton btn) {
+        btn.setBackground(ACCENT);
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Helvetica Neue",Font.BOLD, 17));
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setOpaque(true);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(ACCENT_HI); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(ACCENT); }
+        });
+    }
+
+    private void styleGhostButton(JButton btn, Color fg) {
+        btn.setForeground(fg);
+        btn.setFont(new Font("Helvetica Neue",Font.PLAIN, 16));
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setOpaque(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setForeground(ACCENT); }
+            public void mouseExited(MouseEvent e)  { btn.setForeground(fg); }
+        });
+    }
+
+    private void wireListeners() {
+        logIn.addActionListener(evt -> {
+            if (loginController != null) {
+                final LoginState s = loginViewModel.getState();
+                loginController.execute(s.getUsername(), s.getPassword());
+            }
+        });
+
+        cancel.addActionListener(this);
+
+        toSignup.addActionListener(evt -> {
+            if (loginController != null) loginController.switchToSignupView();
+        });
+
+        usernameInputField.getDocument().addDocumentListener(new DocumentListener() {
+            private void sync() {
+                loginViewModel.getState().setUsername(usernameInputField.getText());
+                loginViewModel.setState(loginViewModel.getState());
+            }
+            public void insertUpdate(DocumentEvent e)  { sync(); }
+            public void removeUpdate(DocumentEvent e)  { sync(); }
+            public void changedUpdate(DocumentEvent e) { sync(); }
+        });
+
+        passwordInputField.getDocument().addDocumentListener(new DocumentListener() {
+            private void sync() {
+                loginViewModel.getState().setPassword(new String(passwordInputField.getPassword()));
+                loginViewModel.setState(loginViewModel.getState());
+            }
+            public void insertUpdate(DocumentEvent e)  { sync(); }
+            public void removeUpdate(DocumentEvent e)  { sync(); }
+            public void changedUpdate(DocumentEvent e) { sync(); }
+        });
+    }
+
     @Override
     public void actionPerformed(ActionEvent evt) {
         if (evt.getSource() == cancel) {
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-
-            int result = JOptionPane.showConfirmDialog(
-                    frame,
-                    "You are leaving the program now.",
-                    "Confirm Exit",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            if (result == JOptionPane.OK_OPTION) {
-                System.exit(0);
-            }
+            int result = JOptionPane.showConfirmDialog(frame,
+                    "You are leaving the program now.", "Confirm Exit",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (result == JOptionPane.OK_OPTION) System.exit(0);
         }
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         final LoginState state = (LoginState) evt.getNewValue();
-        setFields(state);
-        usernameErrorField.setText(state.getLoginError());
-    }
-
-    private void setFields(LoginState state) {
         usernameInputField.setText(state.getUsername());
+        passwordInputField.setText(state.getPassword());
+        String err = state.getLoginError();
+        usernameErrorField.setText(err != null ? err : " ");
     }
 
-    public String getViewName() {
-        return viewName;
-    }
+    public String getViewName() { return viewName; }
 
     public void setLoginController(LoginController loginController) {
         this.loginController = loginController;

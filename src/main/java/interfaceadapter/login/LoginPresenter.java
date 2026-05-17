@@ -5,35 +5,35 @@ import interfaceadapter.logged_in.LoggedInState;
 import interfaceadapter.logged_in.LoggedInViewModel;
 import usecase.login.LoginOutputBoundary;
 import usecase.login.LoginOutputData;
+import usecase.tasks.TasksDataAccessInterface;
 
-/**
- * The Presenter for the Login Use Case.
- */
 public class LoginPresenter implements LoginOutputBoundary {
 
     private final LoginViewModel loginViewModel;
     private final LoggedInViewModel loggedInViewModel;
     private final ViewManagerModel viewManagerModel;
+    private final TasksDataAccessInterface tasksDataAccess;
 
     public LoginPresenter(ViewManagerModel viewManagerModel,
                           LoggedInViewModel loggedInViewModel,
-                          LoginViewModel loginViewModel) {
+                          LoginViewModel loginViewModel,
+                          TasksDataAccessInterface tasksDataAccess) {
         this.viewManagerModel = viewManagerModel;
         this.loggedInViewModel = loggedInViewModel;
         this.loginViewModel = loginViewModel;
+        this.tasksDataAccess = tasksDataAccess;
     }
 
     @Override
     public void prepareSuccessView(LoginOutputData response) {
-        // On success, update the loggedInViewModel's state
+        tasksDataAccess.setCurrentUsername(response.getUsername());
+
         final LoggedInState loggedInState = loggedInViewModel.getState();
         loggedInState.setUsername(response.getUsername());
         this.loggedInViewModel.firePropertyChange();
 
-        // and clear everything from the LoginViewModel's state
         loginViewModel.setState(new LoginState());
 
-        // switch to the logged in view
         this.viewManagerModel.setState(loggedInViewModel.getViewName());
         this.viewManagerModel.firePropertyChange();
     }

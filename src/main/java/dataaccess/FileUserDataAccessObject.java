@@ -8,6 +8,7 @@ import java.util.Map;
 import entity.User;
 import entity.UserFactory;
 import usecase.change_password.ChangePasswordUserDataAccessInterface;
+import usecase.delete_account.DeleteAccountUserDataAccessInterface;
 import usecase.login.LoginUserDataAccessInterface;
 import usecase.logout.LogoutUserDataAccessInterface;
 import usecase.signup.SignupUserDataAccessInterface;
@@ -18,7 +19,8 @@ import usecase.signup.SignupUserDataAccessInterface;
 public class FileUserDataAccessObject implements SignupUserDataAccessInterface,
                                                  LoginUserDataAccessInterface,
                                                  ChangePasswordUserDataAccessInterface,
-                                                 LogoutUserDataAccessInterface {
+                                                 LogoutUserDataAccessInterface,
+                                                 DeleteAccountUserDataAccessInterface {
 
     private static final String HEADER = "username,password";
 
@@ -113,6 +115,12 @@ public class FileUserDataAccessObject implements SignupUserDataAccessInterface,
     @Override
     public boolean existsByName(String identifier) {
         return accounts.containsKey(identifier);
+    }
+
+    @Override
+    public void deleteUser(String username) {
+        accounts.remove(username);
+        save();
     }
 
     @Override

@@ -2,6 +2,7 @@ package usecase.signup;
 
 import entity.User;
 import entity.UserFactory;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * The Signup Interactor.
@@ -34,7 +35,8 @@ public class SignupInteractor implements SignupInputBoundary {
             userPresenter.prepareFailView("Username cannot be empty");
         }
         else {
-            final User user = userFactory.create(signupInputData.getUsername(), signupInputData.getPassword());
+            final String hashedPassword = BCrypt.hashpw(signupInputData.getPassword(), BCrypt.gensalt());
+            final User user = userFactory.create(signupInputData.getUsername(), hashedPassword);
             userDataAccessObject.save(user);
 
             final SignupOutputData signupOutputData = new SignupOutputData(user.getName());

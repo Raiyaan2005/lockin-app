@@ -20,8 +20,18 @@ public class CalendarViewModel {
 
     public List<Event> eventsOn(LocalDate date) { return repo.eventsOn(date); }
 
+    public void markCompleted(String name, LocalDate date) {
+        repo.markCompleted(name, date);
+        fireEventsChanged();
+    }
+
     public void fireEventsChanged() {
         pcs.firePropertyChange(EVENTS_CHANGED, null, null);
+    }
+
+    public void clearAll() {
+        repo.clear();
+        fireEventsChanged();
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l) {

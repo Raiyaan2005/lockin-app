@@ -2,6 +2,7 @@ package usecase.change_password;
 
 import entity.User;
 import entity.UserFactory;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * The Change Password Interactor.
@@ -25,8 +26,8 @@ public class ChangePasswordInteractor implements ChangePasswordInputBoundary {
             userPresenter.prepareFailView("New password cannot be empty");
         }
         else {
-            final User user = userFactory.create(changePasswordInputData.getUsername(),
-                    changePasswordInputData.getPassword());
+            final String hashedPassword = BCrypt.hashpw(changePasswordInputData.getPassword(), BCrypt.gensalt());
+            final User user = userFactory.create(changePasswordInputData.getUsername(), hashedPassword);
 
             userDataAccessObject.changePassword(user);
 

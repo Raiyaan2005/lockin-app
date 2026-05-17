@@ -12,6 +12,9 @@ public class InMemoryTasksDataAccess implements TasksDataAccessInterface, Dashbo
     private final List<Task> tasks = new ArrayList<>();
 
     @Override
+    public void setCurrentUsername(String username) {}
+
+    @Override
     public List<Task> getAllTasks() {
         return new ArrayList<>(tasks);
     }

@@ -1,12 +1,14 @@
 package app;
 
+import dataaccess.FileTasksDataAccessObject;
 import dataaccess.FileUserDataAccessObject;
-import dataaccess.InMemoryTasksDataAccess;
 import entity.UserFactory;
 import interfaceadapter.ViewManagerModel;
 import interfaceadapter.dashboard.DashboardController;
 import interfaceadapter.dashboard.DashboardPresenter;
 import interfaceadapter.dashboard.DashboardViewModel;
+import interfaceadapter.delete_account.DeleteAccountController;
+import interfaceadapter.delete_account.DeleteAccountPresenter;
 import interfaceadapter.logged_in.ChangePasswordController;
 import interfaceadapter.logged_in.ChangePasswordPresenter;
 import interfaceadapter.logged_in.LoggedInViewModel;
@@ -21,6 +23,9 @@ import interfaceadapter.signup.SignupViewModel;
 import usecase.change_password.ChangePasswordInputBoundary;
 import usecase.change_password.ChangePasswordInteractor;
 import usecase.change_password.ChangePasswordOutputBoundary;
+import usecase.delete_account.DeleteAccountInputBoundary;
+import usecase.delete_account.DeleteAccountInteractor;
+import usecase.delete_account.DeleteAccountOutputBoundary;
 import usecase.dashboard.DashboardInputBoundary;
 import usecase.dashboard.DashboardInteractor;
 import usecase.dashboard.DashboardOutputBoundary;
@@ -47,6 +52,7 @@ public class AppBuilder {
 
     // Data Access Objects and Factories
     private FileUserDataAccessObject userDataAccessObject;
+    private FileTasksDataAccessObject tasksDataAccessObject;
     private UserFactory userFactory;
 
     // View Models
@@ -72,6 +78,7 @@ public class AppBuilder {
 
         // Initialize DAO and Factory
         this.userDataAccessObject = new FileUserDataAccessObject("./users.csv", new UserFactory());
+        this.tasksDataAccessObject = new FileTasksDataAccessObject("./tasks.csv");
 
         userFactory = new UserFactory();
 
@@ -82,7 +89,7 @@ public class AppBuilder {
     public AppBuilder addLoginView() {
         // Dependencies for Login
         final LoginOutputBoundary loginOutputBoundary = new LoginPresenter(viewManagerModel,
-                loggedInViewModel, loginViewModel);
+                loggedInViewModel, loginViewModel, tasksDataAccessObject);
         final LoginInputBoundary loginInteractor =
                 new LoginInteractor(userDataAccessObject, loginOutputBoundary);
 
@@ -120,17 +127,15 @@ public class AppBuilder {
     public AppBuilder addLoggedInView(DashboardViewModel dashboardViewModel) {
         this.dashboardViewModel = dashboardViewModel;
 
-        InMemoryTasksDataAccess tasksDataAccess = new InMemoryTasksDataAccess();
-
         DashboardOutputBoundary dashboardPresenter = new DashboardPresenter(dashboardViewModel);
-        DashboardInputBoundary dashboardInteractor = new DashboardInteractor(tasksDataAccess, dashboardPresenter);
+        DashboardInputBoundary dashboardInteractor = new DashboardInteractor(tasksDataAccessObject, dashboardPresenter);
         DashboardController dashboardController = new DashboardController(dashboardInteractor);
 
         this.loggedInView = new LoggedInView(
                 loggedInViewModel,
                 this.dashboardViewModel,
                 dashboardController,
-                tasksDataAccess
+                tasksDataAccessObject
         );
 
         cardPanel.add(loggedInView, loggedInView.getViewName());
@@ -156,6 +161,17 @@ public class AppBuilder {
         ChangePasswordController changePasswordController = new ChangePasswordController(changePasswordInteractor);
 
         loggedInView.setChangePasswordController(changePasswordController);
+        return this;
+    }
+
+    public AppBuilder addDeleteAccountUseCase() {
+        final DeleteAccountOutputBoundary deleteAccountPresenter = new DeleteAccountPresenter(
+                viewManagerModel, loggedInViewModel, loginViewModel);
+        final DeleteAccountInputBoundary deleteAccountInteractor = new DeleteAccountInteractor(
+                userDataAccessObject, tasksDataAccessObject, deleteAccountPresenter);
+        final DeleteAccountController deleteAccountController =
+                new DeleteAccountController(deleteAccountInteractor);
+        loggedInView.setDeleteAccountController(deleteAccountController);
         return this;
     }
 

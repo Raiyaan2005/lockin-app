@@ -1,8 +1,9 @@
 package view;
 
-import dataaccess.InMemoryTasksDataAccess;
+import usecase.tasks.TasksDataAccessInterface;
 import interfaceadapter.dashboard.DashboardController;
 import interfaceadapter.dashboard.DashboardViewModel;
+import interfaceadapter.delete_account.DeleteAccountController;
 import interfaceadapter.logged_in.ChangePasswordController;
 import interfaceadapter.logged_in.LoggedInState;
 import interfaceadapter.logged_in.LoggedInViewModel;
@@ -27,13 +28,14 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
 
     // 1. Add fields for the dependencies needed by DashboardView
     private final DashboardController dashboardController;
-    private final InMemoryTasksDataAccess tasksDataAccess;
+    private final TasksDataAccessInterface tasksDataAccess;
 
     private DashboardView dashboard = null;
     private JFrame applicationFrame = null;
 
     private ChangePasswordController changePasswordController = null;
     private LogoutController logoutController = null;
+    private DeleteAccountController deleteAccountController = null;
 
     /**
      * Updated Constructor to accept all dependencies required to build the Dashboard.
@@ -41,7 +43,7 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
     public LoggedInView(LoggedInViewModel loggedInViewModel,
                         DashboardViewModel dashboardViewModel,
                         DashboardController dashboardController,
-                        InMemoryTasksDataAccess tasksDataAccess) {
+                        TasksDataAccessInterface tasksDataAccess) {
 
         this.loggedInViewModel = loggedInViewModel;
         this.dashboardViewModel = dashboardViewModel;
@@ -81,6 +83,9 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
         if (logoutController != null) {
             dashboard.setLogoutController(logoutController);
         }
+        if (deleteAccountController != null) {
+            dashboard.setDeleteAccountController(deleteAccountController);
+        }
 
         propertyChange(new PropertyChangeEvent(this, "state", null, loggedInViewModel.getState()));
 
@@ -95,7 +100,6 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
      * React to a button click. All action logic is now inside DashboardView.
      */
     public void actionPerformed(ActionEvent evt) {
-        System.out.println("Click from LoggedInView container: " + evt.getActionCommand());
     }
 
     @Override
@@ -103,8 +107,9 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
         if (evt.getPropertyName().equals("state")) {
             final LoggedInState state = (LoggedInState) evt.getNewValue();
 
-            if (dashboard != null) {
+            if (dashboard != null && state.getUsername() != null && !state.getUsername().isEmpty()) {
                 dashboard.updateUsername(state.getUsername());
+                dashboard.onLogin();
             }
         }
     }
@@ -124,6 +129,13 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
         this.logoutController = logoutController;
         if (dashboard != null) {
             dashboard.setLogoutController(logoutController);
+        }
+    }
+
+    public void setDeleteAccountController(DeleteAccountController deleteAccountController) {
+        this.deleteAccountController = deleteAccountController;
+        if (dashboard != null) {
+            dashboard.setDeleteAccountController(deleteAccountController);
         }
     }
 }

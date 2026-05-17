@@ -3,6 +3,7 @@ package use_case.Login;
 import entity.User;
 import entity.UserFactory;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 import usecase.login.*;
 
 import java.util.HashMap;
@@ -22,9 +23,9 @@ class LoginInteractorTest {
         private String currentUsername = null;
 
         public MockDataAccessStub() {
-            // Set up a valid test user for successful login tests
             UserFactory factory = new UserFactory();
-            User testUser = factory.create("testUser", "SecurePwd123");
+            String hashed = BCrypt.hashpw("SecurePwd123", BCrypt.gensalt());
+            User testUser = factory.create("testUser", hashed);
             accounts.put("testUser", testUser);
         }
 

@@ -1,8 +1,15 @@
 package entity;
 
 import java.time.LocalDate;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Task {
+
+    private static final AtomicInteger idCounter = new AtomicInteger((int)(System.currentTimeMillis() / 1000L));
+
+    public static int nextId() {
+        return idCounter.getAndIncrement();
+    }
 
     private final int id;
     private String title;
@@ -73,5 +80,9 @@ public class Task {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

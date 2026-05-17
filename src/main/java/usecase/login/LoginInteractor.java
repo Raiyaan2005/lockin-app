@@ -1,6 +1,7 @@
 package usecase.login;
 
 import entity.User;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * The Login Interactor.
@@ -24,7 +25,7 @@ public class LoginInteractor implements LoginInputBoundary {
         }
         else {
             final String pwd = userDataAccessObject.get(username).getPassword();
-            if (!password.equals(pwd)) {
+            if (!BCrypt.checkpw(password, pwd)) {
                 loginPresenter.prepareFailView("Incorrect password for \"" + username + "\".");
             }
             else {

@@ -1,15 +1,19 @@
 package view;
 
+import entity.Task;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
-import dataaccess.InMemoryTasksDataAccess;
+import usecase.tasks.TasksDataAccessInterface;
 import dataaccess.QuoteApiClient;
 
 import interfaceadapter.dashboard.DashboardController;
 import interfaceadapter.dashboard.DashboardViewModel;
+import interfaceadapter.delete_account.DeleteAccountController;
 import interfaceadapter.logged_in.ChangePasswordController;
 import interfaceadapter.logout.LogoutController;
 import interfaceadapter.tasks.TasksController;
@@ -50,15 +54,19 @@ public class DashboardView extends JPanel {
     private final QuoteViewModel quoteViewModel;
     private final QuoteController quoteController;
 
+    private final TasksDataAccessInterface tasksDataAccess;
+
     private ChangePasswordController changePasswordController = null;
     private LogoutController logoutController = null;
     private TasksController tasksController;
+    private DeleteAccountController deleteAccountController = null;
 
-    private final Color BG_BLACK = Color.decode("#000000");
-    private final Color PANEL_DARK = Color.decode("#020F28");
-    private final Color ACCENT_HOVER = Color.decode("#0047A3");
-    private final Color TEXT_LIGHT = Color.decode("#E6E6E6");
-    private final Color BUTTON_BASE = PANEL_DARK;
+    private final Color BG_BLACK      = new Color(0xFAF8F5);
+    private final Color PANEL_DARK    = new Color(0xF0EBE4);
+    private final Color ACCENT_HOVER  = new Color(0x3B82F6);
+    private final Color SIDEBAR_HOVER = new Color(0xEDE8E3);
+    private final Color TEXT_LIGHT    = new Color(0x1C1917);
+    private final Color BUTTON_BASE   = new Color(0xF0EBE4);
 
     /**
      * Updated constructor to accept Controller and DAO.
@@ -66,11 +74,12 @@ public class DashboardView extends JPanel {
     public DashboardView(JFrame frame,
                          DashboardViewModel dashboardViewModel,
                          DashboardController dashboardController,
-                         InMemoryTasksDataAccess tasksDataAccess) {
+                         TasksDataAccessInterface tasksDataAccess) {
 
         this.frame = frame;
         this.dashboardViewModel = dashboardViewModel;
         this.dashboardController = dashboardController;
+        this.tasksDataAccess = tasksDataAccess;
 
         this.cardLayout = new CardLayout();
         this.cardPanel = new JPanel(cardLayout);
@@ -102,7 +111,7 @@ public class DashboardView extends JPanel {
         setLayout(new BorderLayout(10, 10));
 
         // ----- Header (title only) -----
-        mainHeaderLabel.setFont(new Font("Georgia", Font.BOLD, 32));
+        mainHeaderLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 34));
         mainHeaderLabel.setOpaque(true);
         mainHeaderLabel.setBackground(PANEL_DARK);
         mainHeaderLabel.setForeground(TEXT_LIGHT);
@@ -117,16 +126,18 @@ public class DashboardView extends JPanel {
         add(cardPanel, BorderLayout.CENTER);
 
         // ----- Sidebar -----
-        JPanel sidebar = new JPanel();
-        sidebar.setLayout(new GridLayout(4, 1, 0, 0));
+        JPanel sidebar = new JPanel(new BorderLayout());
         sidebar.setBackground(BG_BLACK);
         sidebar.setPreferredSize(new Dimension(220, 0));
+
+        JPanel navPanel = new JPanel(new GridLayout(4, 1, 0, 0));
+        navPanel.setBackground(BG_BLACK);
 
         String[] buttons = {HOME_CARD, CALENDAR_CARD, TASK_MANAGER_CARD, "Logout"};
 
         for (String text : buttons) {
             JButton btn = new JButton(text);
-            btn.setFont(new Font("Georgia", Font.PLAIN, 18));
+            btn.setFont(new Font("Helvetica Neue",Font.PLAIN, 20));
             btn.setForeground(TEXT_LIGHT);
             btn.setBackground(BUTTON_BASE);
             btn.setOpaque(true);
@@ -136,6 +147,7 @@ public class DashboardView extends JPanel {
 
             if (text.equals(HOME_CARD)) {
                 btn.setBackground(ACCENT_HOVER);
+                btn.setForeground(Color.WHITE);
                 currentSelectedButton = btn;
             }
 
@@ -143,7 +155,7 @@ public class DashboardView extends JPanel {
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     if (btn != currentSelectedButton) {
-                        btn.setBackground(ACCENT_HOVER.brighter());
+                        btn.setBackground(SIDEBAR_HOVER);
                     }
                 }
 
@@ -158,9 +170,11 @@ public class DashboardView extends JPanel {
             btn.addActionListener(e -> {
                 if (currentSelectedButton != null && currentSelectedButton != btn) {
                     currentSelectedButton.setBackground(BUTTON_BASE);
+                    currentSelectedButton.setForeground(TEXT_LIGHT);
                 }
                 currentSelectedButton = btn;
                 btn.setBackground(ACCENT_HOVER);
+                btn.setForeground(Color.WHITE);
 
                 switch (text) {
                     case HOME_CARD:
@@ -201,8 +215,41 @@ public class DashboardView extends JPanel {
             buttonWrapper.setOpaque(false);
             buttonWrapper.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             buttonWrapper.add(btn, BorderLayout.CENTER);
-            sidebar.add(buttonWrapper);
+            navPanel.add(buttonWrapper);
         }
+
+        // ----- Delete Account button pinned to bottom of sidebar -----
+        Color danger      = new Color(0xDC2626);
+
+        JButton deleteAccountBtn = new JButton("Delete Account");
+        deleteAccountBtn.setFont(new Font("Helvetica Neue", Font.BOLD, 15));
+        deleteAccountBtn.setForeground(danger);
+        deleteAccountBtn.setBackground(BUTTON_BASE);
+        deleteAccountBtn.setContentAreaFilled(true);
+        deleteAccountBtn.setOpaque(true);
+        deleteAccountBtn.setBorderPainted(false);
+        deleteAccountBtn.setFocusPainted(false);
+        deleteAccountBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        deleteAccountBtn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { deleteAccountBtn.setBackground(SIDEBAR_HOVER); }
+            public void mouseExited(MouseEvent e)  { deleteAccountBtn.setBackground(BUTTON_BASE); }
+        });
+        deleteAccountBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(frame,
+                    "This will permanently delete your account and all tasks. Continue?",
+                    "Delete Account", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (confirm == JOptionPane.YES_OPTION && deleteAccountController != null) {
+                deleteAccountController.execute();
+            }
+        });
+
+        JPanel deleteWrapper = new JPanel(new BorderLayout());
+        deleteWrapper.setOpaque(false);
+        deleteWrapper.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        deleteWrapper.add(deleteAccountBtn, BorderLayout.CENTER);
+
+        sidebar.add(navPanel, BorderLayout.CENTER);
+        sidebar.add(deleteWrapper, BorderLayout.SOUTH);
 
         add(sidebar, BorderLayout.WEST);
 
@@ -214,6 +261,25 @@ public class DashboardView extends JPanel {
 
         // Initial quote load via use case
         quoteController.loadQuote();
+    }
+
+    public void onLogin() {
+        // Reload task manager from file
+        tasksPanel.refresh();
+
+        // Clear stale calendar events, then re-sync all persisted tasks
+        if (CalendarPanel.sharedViewModel != null) {
+            CalendarPanel.sharedViewModel.clearAll();
+        }
+        if (CalendarPanel.sharedCalendarController != null) {
+            List<Task> tasks = tasksDataAccess.getAllTasks();
+            for (Task task : tasks) {
+                CalendarPanel.sharedCalendarController.addEvent(task.getTitle(), task.getDate(), Color.BLUE);
+            }
+        }
+
+        // Refresh the dashboard home panel
+        dashboardController.execute();
     }
 
     public void updateUsername(String username) {
@@ -230,5 +296,9 @@ public class DashboardView extends JPanel {
 
     public void setTasksController(TasksController tasksController) {
         this.tasksController = tasksController;
+    }
+
+    public void setDeleteAccountController(DeleteAccountController deleteAccountController) {
+        this.deleteAccountController = deleteAccountController;
     }
 }

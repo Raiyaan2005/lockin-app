@@ -1,6 +1,6 @@
 package view;
 
-import dataaccess.InMemoryTasksDataAccess;
+import usecase.tasks.TasksDataAccessInterface;
 import entity.Task;
 import interfaceadapter.dashboard.DashboardController;
 import interfaceadapter.dashboard.DashboardViewModel;
@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -20,8 +21,10 @@ public class TasksPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JButton addTaskBtn, deleteTaskBtn;
 
-    private final InMemoryTasksDataAccess tasksDataAccess;
+    private final TasksDataAccessInterface tasksDataAccess;
     private List<Task> allTasks;
+    private List<Task> originalOrder = new ArrayList<>();
+    private String sortState = "NONE"; // "NONE", "DATE", "COURSE"
 
     private final DashboardViewModel dashboardViewModel;
     private final DashboardController dashboardController; // 1. Added Controller Dependency
@@ -29,8 +32,8 @@ public class TasksPanel extends JPanel {
     public static interfaceadapter.sync_task.SyncTaskToCalendarController syncController;
 
     public TasksPanel(DashboardViewModel dashboardViewModel,
-                      DashboardController dashboardController, // 2. Inject Controller
-                      InMemoryTasksDataAccess tasksDataAccess) {
+                      DashboardController dashboardController,
+                      TasksDataAccessInterface tasksDataAccess) {
 
         this.dashboardViewModel = dashboardViewModel;
         this.dashboardController = dashboardController;
@@ -40,17 +43,21 @@ public class TasksPanel extends JPanel {
         this.allTasks = tasksDataAccess.getAllTasks();
 
         // Colours
-        Color panelDark = Color.decode("#020F28");
-        Color tableBackground = Color.decode("#001F3F");
-        Color textLight = Color.decode("#E6E6E6");
-        Color buttonBlue = new Color(0x003366);
+        Color panelDark       = new Color(0xFAF8F5);
+        Color tableBackground = new Color(0xFFFFFF);
+        Color tableHeader     = new Color(0xF0EBE4);
+        Color textLight       = new Color(0x1C1917);
+        Color textSec         = new Color(0x78716C);
+        Color accent          = new Color(0x3B82F6);
+        Color danger          = new Color(0xDC2626);
+        Color dangerHover     = new Color(0xB91C1C);
 
         setLayout(new BorderLayout());
         setBackground(panelDark);
 
         // Titles
         JLabel title = new JLabel("Task Manager", SwingConstants.CENTER);
-        title.setFont(new Font("Georgia", Font.BOLD, 28));
+        title.setFont(new Font("Helvetica Neue",Font.BOLD, 30));
         title.setForeground(textLight);
         title.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(title, BorderLayout.NORTH);
@@ -71,11 +78,11 @@ public class TasksPanel extends JPanel {
 
         taskTable.setBackground(tableBackground);
         taskTable.setForeground(textLight);
-        taskTable.setFont(new Font("Georgia", Font.PLAIN, 14));
+        taskTable.setFont(new Font("Helvetica Neue",Font.PLAIN, 16));
         taskTable.setGridColor(panelDark);
 
-        taskTable.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 15));
-        taskTable.getTableHeader().setBackground(panelDark);
+        taskTable.getTableHeader().setFont(new Font("Helvetica Neue",Font.BOLD, 17));
+        taskTable.getTableHeader().setBackground(tableHeader);
         taskTable.getTableHeader().setForeground(textLight);
         taskTable.getTableHeader().setReorderingAllowed(false);
 
@@ -85,25 +92,33 @@ public class TasksPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         // Add, delete, and sort buttons
-        addTaskBtn = new JButton("Add Task");
-        addTaskBtn.setFont(new Font("Georgia", Font.BOLD, 16));
-        addTaskBtn.setForeground(buttonBlue);
-        addTaskBtn.setBackground(buttonBlue);
+        addTaskBtn = new JButton("+ Add Task");
+        addTaskBtn.setFont(new Font("Helvetica Neue",Font.BOLD, 17));
+        addTaskBtn.setForeground(Color.WHITE);
+        addTaskBtn.setBackground(accent);
+        addTaskBtn.setOpaque(true);
+        addTaskBtn.setBorderPainted(false);
+        addTaskBtn.setFocusPainted(false);
 
         deleteTaskBtn = new JButton("Delete Task");
-        deleteTaskBtn.setFont(new Font("Georgia", Font.BOLD, 16));
-        deleteTaskBtn.setForeground(buttonBlue);
-        deleteTaskBtn.setBackground(new Color(0x660000));
+        deleteTaskBtn.setFont(new Font("Helvetica Neue", Font.BOLD, 17));
+        deleteTaskBtn.setForeground(Color.WHITE);
+        deleteTaskBtn.setBackground(danger);
+        deleteTaskBtn.setContentAreaFilled(true);
+        deleteTaskBtn.setOpaque(true);
+        deleteTaskBtn.setBorderPainted(false);
+        deleteTaskBtn.setFocusPainted(false);
+        deleteTaskBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        deleteTaskBtn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { deleteTaskBtn.setBackground(dangerHover); }
+            public void mouseExited(MouseEvent e)  { deleteTaskBtn.setBackground(danger); }
+        });
 
         JButton sortByDateBtn = new JButton("Sort by Date");
-        sortByDateBtn.setFont(new Font("Georgia", Font.BOLD, 16));
-        sortByDateBtn.setForeground(buttonBlue);
-        sortByDateBtn.setBackground(buttonBlue);
+        styleSortButton(sortByDateBtn, textSec);
 
         JButton sortByCourseBtn = new JButton("Sort by Course");
-        sortByCourseBtn.setFont(new Font("Georgia", Font.BOLD, 16));
-        sortByCourseBtn.setForeground(buttonBlue);
-        sortByCourseBtn.setBackground(buttonBlue);
+        styleSortButton(sortByCourseBtn, textSec);
 
         JPanel btnWrapper = new JPanel();
         btnWrapper.setBackground(panelDark);
@@ -121,19 +136,29 @@ public class TasksPanel extends JPanel {
         // Delete selected task
         deleteTaskBtn.addActionListener(e -> deleteSelectedTask());
 
-        // Sort by date
+        // Sort by date — second click restores original order
         sortByDateBtn.addActionListener(e -> {
-            allTasks.sort(Comparator.comparing(Task::getDate,
-                    Comparator.nullsLast(Comparator.naturalOrder())));
-            refreshTable(false); // don't reload from repo, just redraw in this order
+            if ("DATE".equals(sortState)) {
+                allTasks = new ArrayList<>(originalOrder);
+                sortState = "NONE";
+            } else {
+                allTasks.sort(Comparator.comparing(Task::getDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())));
+                sortState = "DATE";
+            }
+            refreshTable(false);
         });
 
-        // Sort by course
+        // Sort by course — second click restores original order
         sortByCourseBtn.addActionListener(e -> {
-            allTasks.sort(Comparator.comparing(
-                    Task::getCourse,
-                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
-            ));
+            if ("COURSE".equals(sortState)) {
+                allTasks = new ArrayList<>(originalOrder);
+                sortState = "NONE";
+            } else {
+                allTasks.sort(Comparator.comparing(Task::getCourse,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+                sortState = "COURSE";
+            }
             refreshTable(false);
         });
 
@@ -151,11 +176,17 @@ public class TasksPanel extends JPanel {
         refreshTable(true);
     }
 
+    public void refresh() {
+        refreshTable(true);
+    }
+
     private void refreshTable(boolean reloadFromRepo) {
         tableModel.setRowCount(0);
 
         if (reloadFromRepo) {
             allTasks = tasksDataAccess.getAllTasks();
+            originalOrder = new ArrayList<>(allTasks);
+            sortState = "NONE";
         }
 
         for (Task t : allTasks) {
@@ -194,17 +225,17 @@ public class TasksPanel extends JPanel {
         popup.setLocationRelativeTo(null);
         popup.setLayout(new BorderLayout());
 
-        Color panelDark = Color.decode("#020F28");
-        Color fieldDark = Color.decode("#001F3F");
-        Color textLight = Color.decode("#E6E6E6");
+        Color panelDark = new Color(0xFAF8F5);
+        Color fieldDark = new Color(0xFFFFFF);
+        Color textLight = new Color(0x1C1917);
 
         JPanel form = new JPanel();
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
         form.setBackground(panelDark);
         form.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        Font labelFont = new Font("Georgia", Font.PLAIN, 16);
-        Font fieldFont = new Font("Georgia", Font.PLAIN, 14);
+        Font labelFont = new Font("Helvetica Neue",Font.PLAIN, 18);
+        Font fieldFont = new Font("Helvetica Neue",Font.PLAIN, 16);
 
         JLabel titleLabel = new JLabel("Task Name:");
         titleLabel.setForeground(textLight);
@@ -268,8 +299,8 @@ public class TasksPanel extends JPanel {
         JButton saveBtn = new JButton(editing ? "Save Changes" : "Save Task");
         JButton cancelBtn = new JButton("Cancel");
 
-        saveBtn.setFont(new Font("Georgia", Font.BOLD, 14));
-        cancelBtn.setFont(new Font("Georgia", Font.BOLD, 14));
+        saveBtn.setFont(new Font("Helvetica Neue",Font.BOLD, 16));
+        cancelBtn.setFont(new Font("Helvetica Neue",Font.BOLD, 16));
 
         JPanel buttons = new JPanel();
         buttons.setBackground(panelDark);
@@ -288,9 +319,14 @@ public class TasksPanel extends JPanel {
 
                     tasksDataAccess.updateTask(taskToEdit);
 
+                    if (completedCheck.isSelected() && CalendarPanel.sharedViewModel != null) {
+                        CalendarPanel.sharedViewModel.markCompleted(
+                                taskToEdit.getTitle(), taskToEdit.getDate());
+                    }
+
                 } else {
                     Task newTask = new Task(
-                            (int)(Math.random() * 1_000_000),
+                            Task.nextId(),
                             titleField.getText(),
                             descArea.getText(),
                             LocalDate.parse(dateField.getText()),
@@ -332,5 +368,22 @@ public class TasksPanel extends JPanel {
         cancelBtn.addActionListener(e -> popup.dispose());
 
         popup.setVisible(true);
+    }
+
+    private void styleSortButton(JButton btn, Color fg) {
+        Color base  = new Color(0x3B82F6);
+        Color hover = new Color(0x2563EB);
+        btn.setFont(new Font("Helvetica Neue", Font.BOLD, 17));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(base);
+        btn.setContentAreaFilled(true);
+        btn.setOpaque(true);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(hover); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(base); }
+        });
     }
 }

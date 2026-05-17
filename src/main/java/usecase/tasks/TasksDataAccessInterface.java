@@ -11,4 +11,8 @@ public interface TasksDataAccessInterface {
     void updateTask(Task task);
 
     void removeTask(Task task);
+
+    default void setCurrentUsername(String username) {}
+
+    default void deleteAllTasksForUser(String username) {}
 }

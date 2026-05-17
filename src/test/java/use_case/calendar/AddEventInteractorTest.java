@@ -62,6 +62,11 @@ class AddEventInteractorTest {
         public java.util.List<Event> eventsOn(LocalDate date) {
             return added;
         }
+
+        @Override
+        public void clear() {
+            added.clear();
+        }
     }
 
     static class TestPresenter implements AddEventOutputBoundary {

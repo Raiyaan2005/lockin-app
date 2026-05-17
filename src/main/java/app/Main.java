@@ -60,6 +60,7 @@ public class Main {
                     .addLoginUseCase()
                     .addChangePasswordUseCase()
                     .addLogoutUseCase()
+                    .addDeleteAccountUseCase()
                     .build();
 
             application.pack();

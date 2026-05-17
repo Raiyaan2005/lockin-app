@@ -29,10 +29,13 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
     private final StopwatchController stopwatchController;
     private JLabel stopwatchLabel;
 
-    private final Color BG_BLACK = Color.decode("#000000");
-    private final Color PANEL_DARK = Color.decode("#020F28");
-    private final Color TEXT_LIGHT = Color.decode("#E6E6E6");
-    private final Color ACCENT_COLOR = Color.decode("#007bff");
+    private final Color BG_BLACK     = new Color(0xFAF8F5);
+    private final Color PANEL_DARK   = new Color(0xF0EBE4);
+    private final Color CARD         = new Color(0xFFFFFF);
+    private final Color CARD_HI      = new Color(0xFFFAF8);
+    private final Color ACCENT_COLOR = new Color(0x3B82F6);
+    private final Color TEXT_LIGHT   = new Color(0x1C1917);
+    private final Color TEXT_SEC     = new Color(0x78716C);
 
     public HomePanel(DashboardViewModel dashboardViewModel,
                      QuoteViewModel quoteViewModel,
@@ -56,15 +59,15 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
         welcomePanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
         welcomeLabel = new JLabel("Welcome Home! (Loading username...)", SwingConstants.LEFT);
-        welcomeLabel.setFont(new Font("Georgia", Font.BOLD, 28));
+        welcomeLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 30));
         welcomeLabel.setForeground(TEXT_LIGHT);
 
         quoteLabel = new JLabel("", SwingConstants.RIGHT);
-        quoteLabel.setFont(new Font("Georgia", Font.ITALIC, 18));
+        quoteLabel.setFont(new Font("Helvetica Neue",Font.ITALIC, 20));
         quoteLabel.setForeground(TEXT_LIGHT);
 
         JButton refreshQuoteButton = new JButton("New quote");
-        refreshQuoteButton.setFont(new Font("Georgia", Font.PLAIN, 14));
+        refreshQuoteButton.setFont(new Font("Helvetica Neue",Font.PLAIN, 16));
         refreshQuoteButton.addActionListener(e -> quoteController.loadQuote());
 
         JPanel rightBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
@@ -98,7 +101,7 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
     private JPanel createDueSoonPanel() {
         JPanel container = new JPanel();
-        container.setBackground(PANEL_DARK);
+        container.setBackground(CARD);
         container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
         container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -125,7 +128,7 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
         mainSection2.setOpaque(false);
 
         JLabel titleLabel = new JLabel("Due Soon", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Georgia", Font.BOLD, 20));
+        titleLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 22));
         titleLabel.setForeground(TEXT_LIGHT);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         titleLabel.setBackground(PANEL_DARK);
@@ -154,12 +157,12 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
     private JPanel createEmptyTaskPanel(String labelText) {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBackground(PANEL_DARK.brighter().brighter());
-        panel.setBorder(BorderFactory.createLineBorder(ACCENT_COLOR, 2, true));
+        panel.setBackground(CARD_HI);
+        panel.setBorder(BorderFactory.createLineBorder(new Color(0xE2D9D0), 1, true));
 
         JLabel title = new JLabel(labelText, SwingConstants.CENTER);
         title.setForeground(TEXT_LIGHT);
-        title.setFont(new Font("Georgia", Font.BOLD, 16));
+        title.setFont(new Font("Helvetica Neue",Font.BOLD, 18));
 
         panel.add(title, BorderLayout.NORTH);
         return panel;
@@ -177,7 +180,10 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
                 panel.setLayout(new GridBagLayout());
                 panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-                panel.setBackground(PANEL_DARK.brighter());
+                panel.setBackground(CARD_HI);
+                panel.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(0xE2D9D0), 1),
+                        BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 
                 GridBagConstraints gbc = new GridBagConstraints();
                 gbc.insets = new Insets(4, 6, 4, 6);
@@ -188,7 +194,7 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
                 gbc.gridwidth = 2;
                 gbc.fill = GridBagConstraints.HORIZONTAL;
                 JLabel dueTopLabel = new JLabel(task.getDueInText(), SwingConstants.CENTER);
-                dueTopLabel.setFont(new Font("Georgia", Font.BOLD, 24));
+                dueTopLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 26));
                 dueTopLabel.setForeground(ACCENT_COLOR);
                 dueTopLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 panel.add(dueTopLabel, gbc);
@@ -200,60 +206,60 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
                 JLabel nameLabel = new JLabel("Task Name:");
                 nameLabel.setForeground(TEXT_LIGHT);
-                nameLabel.setFont(new Font("Georgia", Font.BOLD, 16));
+                nameLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 18));
                 panel.add(nameLabel, gbc);
 
                 gbc.gridy++;
                 JLabel courseLabel = new JLabel("Course:");
                 courseLabel.setForeground(TEXT_LIGHT);
-                courseLabel.setFont(new Font("Georgia", Font.BOLD, 16));
+                courseLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 18));
                 panel.add(courseLabel, gbc);
 
                 gbc.gridy++;
                 JLabel descLabel = new JLabel("Description:");
                 descLabel.setForeground(TEXT_LIGHT);
-                descLabel.setFont(new Font("Georgia", Font.BOLD, 16));
+                descLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 18));
                 panel.add(descLabel, gbc);
 
                 gbc.gridy++;
                 JLabel dueDateLabel = new JLabel("Due Date:");
                 dueDateLabel.setForeground(TEXT_LIGHT);
-                dueDateLabel.setFont(new Font("Georgia", Font.BOLD, 16));
+                dueDateLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 18));
                 panel.add(dueDateLabel, gbc);
 
                 gbc.gridx = 1;
                 gbc.gridy = 1;
                 JLabel nameValue = new JLabel(task.getTaskName());
                 nameValue.setForeground(TEXT_LIGHT);
-                nameValue.setFont(new Font("Georgia", Font.PLAIN, 16));
+                nameValue.setFont(new Font("Helvetica Neue",Font.PLAIN, 18));
                 panel.add(nameValue, gbc);
 
                 gbc.gridy++;
                 JLabel courseValue = new JLabel(task.getCourse());
                 courseValue.setForeground(ACCENT_COLOR);
-                courseValue.setFont(new Font("Georgia", Font.PLAIN, 16));
+                courseValue.setFont(new Font("Helvetica Neue",Font.PLAIN, 18));
                 panel.add(courseValue, gbc);
 
                 gbc.gridy++;
                 JLabel descValue = new JLabel(task.getDescription() != null ? task.getDescription() : "-");
                 descValue.setForeground(TEXT_LIGHT);
-                descValue.setFont(new Font("Georgia", Font.PLAIN, 16));
+                descValue.setFont(new Font("Helvetica Neue",Font.PLAIN, 18));
                 panel.add(descValue, gbc);
 
                 gbc.gridy++;
                 JLabel dueDateValue = new JLabel(task.getFormattedDueDate());
                 dueDateValue.setForeground(TEXT_LIGHT);
-                dueDateValue.setFont(new Font("Georgia", Font.PLAIN, 16));
+                dueDateValue.setFont(new Font("Helvetica Neue",Font.PLAIN, 18));
                 panel.add(dueDateValue, gbc);
 
             } else {
                 panel.setLayout(new GridBagLayout());
-                panel.setBorder(null);
-                panel.setBackground(PANEL_DARK);
+                panel.setBorder(BorderFactory.createLineBorder(new Color(0xE2D9D0), 1));
+                panel.setBackground(CARD);
 
                 JLabel emptyLabel = new JLabel("No more tasks due soon", SwingConstants.CENTER);
-                emptyLabel.setForeground(TEXT_LIGHT.darker());
-                emptyLabel.setFont(new Font("Georgia", Font.PLAIN, 16));
+                emptyLabel.setForeground(TEXT_SEC);
+                emptyLabel.setFont(new Font("Helvetica Neue",Font.PLAIN, 18));
                 panel.add(emptyLabel);
             }
 
@@ -276,20 +282,20 @@ public class HomePanel extends JPanel implements PropertyChangeListener {
 
     private JPanel createPlaceholderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.decode("#020F28")); // PANEL_DARK
+        panel.setBackground(CARD);
 
         JLabel placeholderLabel = new JLabel("Stopwatch", SwingConstants.CENTER);
-        placeholderLabel.setFont(new Font("Georgia", Font.BOLD, 20));
-        placeholderLabel.setForeground(Color.decode("#E6E6E6")); // TEXT_LIGHT
+        placeholderLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 22));
+        placeholderLabel.setForeground(TEXT_LIGHT);
         panel.add(placeholderLabel, BorderLayout.NORTH);
 
         stopwatchLabel = new JLabel("00:00:00", SwingConstants.CENTER);
-        stopwatchLabel.setFont(new Font("Georgia", Font.BOLD, 24));
-        stopwatchLabel.setForeground(Color.decode("#007bff")); // ACCENT_COLOR
+        stopwatchLabel.setFont(new Font("Helvetica Neue",Font.BOLD, 26));
+        stopwatchLabel.setForeground(ACCENT_COLOR);
         panel.add(stopwatchLabel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(Color.decode("#020F28"));
+        buttonPanel.setBackground(CARD);
         JButton startBtn = new JButton("Start");
         JButton stopBtn = new JButton("Stop");
         JButton resetBtn = new JButton("Reset");
