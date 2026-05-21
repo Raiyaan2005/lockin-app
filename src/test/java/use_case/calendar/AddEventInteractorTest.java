@@ -67,6 +67,9 @@ class AddEventInteractorTest {
         public void clear() {
             added.clear();
         }
+
+        @Override
+        public void markCompleted(String name, LocalDate date) {}
     }
 
     static class TestPresenter implements AddEventOutputBoundary {
