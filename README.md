@@ -46,6 +46,21 @@ Each use case is fully decoupled — the UI layer never touches the data layer d
 
 ---
 
+## Technical Highlights
+
+- **Secure authentication** — passwords are hashed using jBCrypt before storage, 
+  ensuring plaintext credentials are never written to disk
+- **Comprehensive test coverage** — 100% line and branch coverage across all use 
+  cases via JUnit 5, with tests written for every Interactor and Entity layer path
+- **CI/CD pipeline** — GitHub Actions workflow runs the full test suite automatically 
+  on every push, keeping the main branch deployment-ready at all times
+- **Clean Architecture enforcement** — strict layer separation ensures the UI never 
+  touches the data layer directly, making the codebase fully testable and modular
+- **Session persistence** — user credentials and task data persist across sessions 
+  via CSV-based data access objects, with automatic file creation on first run
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -90,6 +105,7 @@ mvn package
 **Home Page** *(Raiyaan)*
 - As a user, I want to see my three most due-soon tasks on the home page so I know what to prioritize.
 - As a user, I want a built-in stopwatch to time my study sessions.
+- As a user, I want to have the option to delete my account and the data associated with it.
 
 **Task Manager** *(Ella)*
 - As a user, I want to see all my tasks in one place so I can understand my workload.
